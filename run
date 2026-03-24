@@ -1,3 +1,3 @@
 #!/bin/sh
 
-qemu-system-x86_64 -m 1024 -drive file=build/disk.img,format=raw,media=disk
+qemu-system-x86_64 -m 1024 -drive file=build/TigerOS.img,format=raw,media=disk
