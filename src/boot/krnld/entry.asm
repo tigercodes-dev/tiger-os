@@ -1,8 +1,22 @@
-org 0x500
 bits 16
+
+section .entry
+
+extern __bss_start
+extern __end
+
+extern krnld_start
+global start
 
 start:
     cli
+
+    mov [boot_drive], dl
+
+    mov ax, ds
+    mov ss, ax
+    mov sp, 0xFFF0
+    mov bp, sp
 
     ; enable A20 line
     in al, 0x92
@@ -22,14 +36,6 @@ start:
     mov cr0, eax
 
     jmp dword 0x08:pmode
-
-pmode:
-    [bits 32]
-
-    mov byte [0xB8000], 'A'
-
-    cli
-    hlt
 
 ; Initial GDT, may change later in kernel
 init_gdt:
@@ -57,3 +63,28 @@ gdt_descriptor:
     dd init_gdt ; gdt location
 
 boot_drive: db 0
+
+pmode:
+    [bits 32]
+
+    mov ax, 0x10
+    mov ds, ax
+    mov ss, ax
+
+    ; clear bss
+    mov edi, __bss_start
+    mov ecx, __end
+    sub ecx, edi
+
+    xor al, al
+    cld
+    rep stosb
+
+    xor edx, edx
+    mov dl, [boot_drive]
+
+    push edx
+    call krnld_start
+
+    cli
+    hlt

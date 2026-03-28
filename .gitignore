@@ -1,2 +1,6 @@
+# Exclude build directories
 build/
+toolchain/
+
+# Exclude editor configuration
 .vscode/

@@ -1,5 +1,24 @@
 export BUILD := $(abspath build)
 
+export ASM := nasm
+export CC := gcc
+export LD := gcc
+
+export ASMFLAGS :=
+export CCFLAGS := -std=c99 -g
+export LDFLAGS :=
+export LDLIBS :=
+
+export TARGET := i686-elf
+export TARGET_ASM := nasm
+export TARGET_CC := $(TARGET)-gcc
+export TARGET_LD := $(TARGET)-gcc
+
+export TARGET_ASMFLAGS :=
+export TARGET_CCFLAGS := -std=c99 -g
+export TARGET_LDFLAGS :=
+export TARGET_LDLIBS :=
+
 # 32M is recommended minimum size for disk
 DISK_SIZE := 32M
 DISK_FILE ?= $(BUILD)/TigerOS.img
@@ -8,6 +27,8 @@ DISK_FILE ?= $(BUILD)/TigerOS.img
 .SILENT:
 
 all: disk
+
+include tools.mk
 
 # Disk Image
 
