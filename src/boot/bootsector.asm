@@ -31,11 +31,172 @@ vol_label:              db "TIGER OS   " ; 11 Bytes, pad with spaces
 filesystem_type:        db "FAT16   " ; 8 Bytes
 
 ; Code starts here
+start:
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    mov ss, ax
+
+    mov sp, 0x7C00
+
+    jmp 0:main
+
 main:
-    mov si, msg_loading
+    mov [drive_num], dl
+
+    push es
+
+    mov ah, 0x08
+    int 0x13
+    jc disk_error
+    
+    pop es
+
+    and cl, 0x3F
+    xor ch, ch
+    mov [sectors_per_track], cx
+    inc dh
+    mov [disk_heads], dh
+
+    xor ah, ah
+    mov al, [fat_count]
+    mov bx, [sectors_per_fat]
+    mul bx
+    add ax, [reserved_sectors]
+
+    push ax
+
+    mov ax, [root_dir_entries]
+    shl ax, 5 ; Multiply by 32
+
+    xor dx, dx
+    div word [bytes_per_sector]
+
+    test dx, dx
+    jz .read_root_dir
+    inc ax
+
+.read_root_dir:
+    mov [root_dir_size], ax
+    mov cl, al
+
+    pop ax
+
+    mov dl, [drive_num]
+    mov bx, 0x7E00
+    call disk_read
+
+    mov bx, 0
+    mov si, 0x7E00
+
+.find_kernel_sys:
+    mov di, kernel_sys
+    mov cx, 11 ; read 11 bytes 8.3 filename
+
+    push si
+    repe cmpsb
+    pop si
+
+    je .begin_load_kernel
+
+    add si, 32
+
+    inc bx
+    cmp bx, [root_dir_entries]
+    jl .find_kernel_sys
+
+    jmp kernel_missing_error
+
+.begin_load_kernel:
+    mov di, [si + 26] ; First cluster
+
+    mov ax, [reserved_sectors]
+    mov bx, 0x7E00
+    mov cl, [sectors_per_fat]
+    mov dl, [drive_num]
+
+    call disk_read 
+
+    mov bx, KERNEL_SEGMENT
+    mov es, bx
+    mov bx, KERNEL_OFFSET
+
+.load_kernel_cluster:
+    mov ax, di
+    sub ax, 2
+
+    mul byte [sectors_per_cluster]
+
+    ; sectors before first file = reserved sectors + (sectors per fat * fat count) + root dir size
+    add ax, [reserved_sectors]
+    add ax, [root_dir_size]
+
+    push bx
+    push ax
+
+    mov ax, [sectors_per_fat]
+    mul byte [fat_count]
+
+    pop bx
+    add ax, bx
+    pop bx
+
+    mov cl, [sectors_per_cluster]
+
+    call disk_read
+
+    ; increase bx position by bytes per cluster - (bytes per sector) * (sectors per cluster)
+    mov ax, [bytes_per_sector]
+    mul word [sectors_per_cluster]
+    add bx, ax
+
+    push di
+
+    mov ax, di
+    shl ax, 1 ; multiply by 2 (2 byte / 16 bit clusters)
+
+    mov si, 0x7E00
+    add si, ax
+
+    mov ax, [ds:si]
+
+    ; Check if it's the end of the file
+    cmp ax, 0xFFF8
+    jae .jump_to_kernel
+
+    pop di
+    inc di
+
+    jmp .load_kernel_cluster
+
+.jump_to_kernel:
+    mov dl, [drive_num]
+
+    mov ax, KERNEL_SEGMENT
+    mov ds, ax
+    mov es, ax
+
+    jmp KERNEL_SEGMENT:KERNEL_OFFSET
+
+disk_error:
+    mov si, err_disk
+    call puts
+    jmp reboot
+
+kernel_missing_error:
+    mov si, err_kernel
+    call puts
+    jmp reboot
+
+reboot:
+    mov si, msg_reboot
     call puts
 
-    jmp $ ; Infinite loop
+    ; wait for keypress
+    mov ah, 0x00
+    int 16h
+
+    jmp 0xFFFF:0 ; jump to beginning of BIOS
 
 ; Prints a null-terminated string to the screen
 ; Params:
@@ -65,10 +226,75 @@ puts:
 
     ret
 
+; Convert LBA scheme to CHS scheme
+; Params:
+;   ax - LBA sector address
+; Output:
+;   cx (low 6 bits) - sector
+;   cx (high 10 bits) - cylinder
+;   dh - head
+lba_to_chs:
+    push ax
+    push dx
+
+    xor dx, dx
+    div word [sectors_per_track]
+    
+    mov cx, dx
+    inc cx ; sector starts at 1
+
+    xor dx, dx
+    div word [disk_heads]
+
+    shl dx, 8 ; shift dl into dh
+
+    mov ch, al
+    shl ah, 6
+    or cl, ah
+
+    pop ax
+    mov dl, al
+    pop ax
+
+    ret
+
+; Reads sectors from a disk
+; Params:
+;   dl - drive number
+;   ax - LBA address
+;   cl - sector read count
+;   es:bx - data output buffer
+disk_read:
+    pusha
+    push cx
+
+    call lba_to_chs
+
+    pop ax
+    mov ah, 0x02
+
+    stc
+    int 0x13
+    jc disk_error
+
+    popa
+
+    ret
+
 %define endl 0x0D, 0x0A
 
 ; Message Strings (null terminated)
-msg_loading: db "Booting TigerOS...", endl, 0
+
+err_disk: db "Disk error.", 0
+err_kernel: db "KERNEL.SYS is missing.", 0
+msg_reboot: db endl, "Press any key to reboot...", 0
+
+kernel_sys: db "KERNEL  SYS"
+
+root_dir_size: dw 0
+
+KERNEL_SEGMENT: equ 0x0
+KERNEL_OFFSET: equ 0x500
 
 ; Padding and BIOS Boot Signature
 times 510-($-$$) db 0
