@@ -13,21 +13,28 @@ all: disk
 
 disk: $(DISK_FILE)
 
-$(DISK_FILE): bootsector kernel
+$(DISK_FILE): bootloader kernel
 	mkdir -p $(@D)
 	head -c $(DISK_SIZE) /dev/zero > $@
 	mkfs.fat -F 16 -n "TIGER OS" $@ > /dev/zero
 	echo "Initialized FAT16"
 	dd if=$(BUILD)/bootsector.bin of=$@ conv=notrunc > /dev/zero 2>&1
-	mcopy -i $@ $(BUILD)/kernel.bin "::/KERNEL.SYS"
-	mcopy -i $@ test.txt "::/TEST.TXT"
+	mcopy -i $@ $(BUILD)/krnld.bin "::/KRNLD.SYS"
+	mmd -i $@ "::/SYSTEM"
+	mcopy -i $@ $(BUILD)/kernel.bin "::/SYSTEM/KERNEL.SYS"
+	mcopy -i $@ test.txt "::/SYSTEM/TEST.TXT"
 	echo "Finished adding files to disk."
 	echo "$@ is ready."
 
 # Bootloader
 
+bootloader: bootsector krnld
+
 bootsector:
 	$(MAKE) -C src/boot
+
+krnld:
+	$(MAKE) -C src/boot/krnld
 
 # Kernel
 

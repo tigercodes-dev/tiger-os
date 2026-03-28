@@ -286,10 +286,10 @@ disk_read:
 ; Message Strings (null terminated)
 
 err_disk: db "Disk error.", 0
-err_kernel: db "KERNEL.SYS is missing.", 0
+err_kernel: db "KRNLD.SYS is missing.", 0
 msg_reboot: db endl, "Press any key to reboot...", 0
 
-kernel_sys: db "KERNEL  SYS"
+kernel_sys: db "KRNLD   SYS"
 
 root_dir_size: dw 0
 
