@@ -113,9 +113,8 @@ main:
     mov ax, [reserved_sectors]
     mov bx, 0x7E00
     mov cl, [sectors_per_fat]
-    mov dl, [drive_num]
 
-    call disk_read 
+    call disk_read
 
     mov bx, KERNEL_SEGMENT
     mov es, bx
@@ -146,11 +145,11 @@ main:
     call disk_read
 
     ; increase bx position by bytes per cluster - (bytes per sector) * (sectors per cluster)
+    push dx
     mov ax, [bytes_per_sector]
     mul word [sectors_per_cluster]
+    pop dx
     add bx, ax
-
-    push di
 
     mov ax, di
     shl ax, 1 ; multiply by 2 (2 byte / 16 bit clusters)
@@ -158,14 +157,11 @@ main:
     mov si, 0x7E00
     add si, ax
 
-    mov ax, [ds:si]
+    mov di, [ds:si]
 
     ; Check if it's the end of the file
-    cmp ax, 0xFFF8
+    cmp di, 0xFFF8
     jae .jump_to_kernel
-
-    pop di
-    inc di
 
     jmp .load_kernel_cluster
 
