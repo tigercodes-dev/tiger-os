@@ -1,5 +1,5 @@
 #include "stdio.h"
-#include "hardware.h"
+#include "i686/ports.h"
 #include <stdarg.h>
 
 #define SCREEN_WIDTH (int)80
