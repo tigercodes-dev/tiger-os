@@ -5,10 +5,11 @@ TARGET_LDFLAGS += -T linker.ld -nostdlib
 
 BUILD_KERNEL := $(BUILD)/kernel
 
-SRC_C := $(wildcard *.c)
-SRC_ASM := $(wildcard *.asm)
+SRC_C := $(shell find -name "*.c")
+SRC_ASM := $(shell find -name "*.asm")
 OBJ_C := $(patsubst %.c, $(BUILD_KERNEL)/c/%.obj, $(SRC_C))
 OBJ_ASM := $(patsubst %.asm, $(BUILD_KERNEL)/asm/%.obj, $(SRC_ASM))
+HEADERS_C := $(shell find -name "*.h")
 
 .PHONY: all kernel clean always
 .SILENT:
@@ -28,7 +29,7 @@ $(BUILD_KERNEL)/asm/%.obj: %.asm
 	$(TARGET_ASM) $(TARGET_ASMFLAGS) -o $@ $<
 	echo "ASM: $< --> $@"
 
-$(BUILD_KERNEL)/c/%.obj: %.c
+$(BUILD_KERNEL)/c/%.obj: %.c $(HEADERS_C)
 	mkdir -p $(@D)
 	$(TARGET_CC) $(TARGET_CCFLAGS) -c -o $@ $<
 	echo "CC: $< --> $@"

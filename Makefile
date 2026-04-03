@@ -1,4 +1,10 @@
+ifdef BUILD
+export BUILD
+else
 export BUILD := $(abspath build)
+endif
+
+export TIGER_OS_VER = 0.0.1-beta
 
 export ASM := nasm
 export CC := gcc
@@ -23,7 +29,7 @@ export TARGET_LDLIBS :=
 DISK_SIZE := 32M
 DISK_FILE ?= $(BUILD)/TigerOS.img
 
-.PHONY: all disk bootsector kernel clean
+.PHONY: all disk bootloader bootsector krnld kernel clean
 .SILENT:
 
 all: disk
@@ -44,6 +50,7 @@ $(DISK_FILE): bootloader kernel
 	mattrib -i $@ +h +s "::/KRNLD.SYS"
 	mmd -i $@ "::/SYSTEM"
 	mcopy -i $@ $(BUILD)/kernel.bin "::/SYSTEM/KERNEL.SYS"
+	mattrib -i $@ +h +s "::/SYSTEM/KERNEL.SYS"
 	mcopy -i $@ test.txt "::/SYSTEM/TEST.TXT"
 	echo "Finished adding files to disk."
 	echo "$@ is ready."
@@ -65,8 +72,38 @@ kernel:
 
 # Special Targets
 
+help:
+	echo "TigerOS V$(TIGER_OS_VER) <https://github.com/tigercodes-dev/tiger-os>"
+	echo "By tigercodes-dev <https://github.com/tigercodes-dev>"
+	echo
+	echo "Build Dir: $(BUILD)"
+	echo "Target Architecture: $(TARGET)"
+	echo
+	echo "Makefile Targets:"
+	echo "\thelp - shows this help message"
+	echo "\tversion - shows a version message"
+	echo
+	echo "\tall - builds everything"
+	echo "\tdisk - builds the disk image"
+	echo "\tbootloader - builds the bootloader (boot sector and kernel loader)"
+	echo "\tbootsector - builds the boot sector"
+	echo "\tkrnld - builds the kernel loader"
+	echo "\tkernel - builds the kernel"
+	echo "\tclean - clears the build directory"
+	echo
+	echo "\ttoolchain - builds the toolchain"
+	echo "\ttools-binutils - builds binutils, version: $(BINUTILS_VER)"
+	echo "\ttools-gcc - builds the gcc cross compiler, version: $(GCC_VER)"
+	echo "\tclean-toolchain - clears the toolchain directory"
+	echo
+
+version:
+	echo "TigerOS by tigercodes-dev <https://github.com/tigercodes-dev>"
+	echo "Version $(TIGER_OS_VER)"
+
 clean:
 	$(MAKE) -C src/boot clean
 	$(MAKE) -C src/boot/krnld clean
 	$(MAKE) -C src/kernel clean
 	rm -rf $(BUILD)/*
+	echo "Cleaned build directory."
