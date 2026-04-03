@@ -102,5 +102,30 @@ pmode:
     push edx
     call krnld_start
 
+    ; Handle if an error occured
+    ; Return to real mode
+    cli
+    jmp word 0x18:.pm16
+
+.pm16:
+    [bits 16]
+
+    mov eax, cr0
+    and al, ~1
+    mov cr0, eax
+
+    jmp word 0x00:.rm
+
+.rm:
+    xor ax, ax
+    mov ds, ax
+    mov ss, ax
+
+    sti
+
+    ; Wait for keypress and jump to beginning of BIOS.
+    int 0x16
+    jmp 0xFFFF:0
+
     cli
     hlt
