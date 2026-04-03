@@ -1,5 +1,3 @@
-bits 32
-
 %macro EnterRealMode 0
     [bits 32]
     jmp word 0x18:.pm16
@@ -14,7 +12,7 @@ bits 32
     jmp word 0x00:.rm
 
 .rm:
-    mov ax, 0
+    xor ax, ax
     mov ds, ax
     mov ss, ax
 

@@ -6,7 +6,7 @@ bool load_disk(DISK* disk, uint8_t drive) {
     uint8_t drive_type;
     uint16_t cyls, secs, heads;
 
-    if (disk_getparams(disk->id, &drive_type, &cyls, &secs, &heads)) {
+    if (!disk_getparams(drive, &drive_type, &cyls, &secs, &heads)) {
         return false;
     }
 

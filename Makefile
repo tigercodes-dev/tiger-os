@@ -41,6 +41,7 @@ $(DISK_FILE): bootloader kernel
 	echo "Initialized FAT16"
 	dd if=$(BUILD)/bootsector.bin of=$@ conv=notrunc > /dev/zero 2>&1
 	mcopy -i $@ $(BUILD)/krnld.bin "::/KRNLD.SYS"
+	mattrib -i $@ +h +s "::/KRNLD.SYS"
 	mmd -i $@ "::/SYSTEM"
 	mcopy -i $@ $(BUILD)/kernel.bin "::/SYSTEM/KERNEL.SYS"
 	mcopy -i $@ test.txt "::/SYSTEM/TEST.TXT"
