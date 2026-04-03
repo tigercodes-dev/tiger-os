@@ -3,6 +3,7 @@
 #include "stdio.h"
 #include "disk.h"
 #include "fat16.h"
+#include "memory.h"
 
 extern uint8_t __entry_start;
 
@@ -38,7 +39,7 @@ void __attribute__((cdecl)) krnld_start(uint8_t boot_drive) {
     puts("Loading kernel...\n");
 
     File* fd;
-    error_code = fat16_open(&disk, "/system/test.txt", &fd);
+    error_code = fat16_open(&disk, "/system/kernel.sys", &fd);
     if (error_code != 0) {
         printf("Error: Unable to load the kernel.\nError Code: 0x%x\n", error_code);
         return;
@@ -47,9 +48,13 @@ void __attribute__((cdecl)) krnld_start(uint8_t boot_drive) {
     uint32_t read;
     uint8_t* kernel_buffer = kernel;
     
-    while (fat16_read(&disk, fd, MEMORY_LOAD_SIZE, kernel_load_buffer)) {
-        puts(kernel_load_buffer);
+    while ((read = fat16_read(&disk, fd, MEMORY_LOAD_SIZE, kernel_load_buffer))) {
+        memcpy(kernel_buffer, kernel_load_buffer, read);
+        kernel_buffer += read;
     }
 
     fat16_close(fd);
+
+    KernelStart kernel_entry = (KernelStart)kernel;
+    kernel_entry();
 }

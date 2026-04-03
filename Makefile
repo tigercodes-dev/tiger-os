@@ -67,5 +67,6 @@ kernel:
 
 clean:
 	$(MAKE) -C src/boot clean
+	$(MAKE) -C src/boot/krnld clean
 	$(MAKE) -C src/kernel clean
 	rm -rf $(BUILD)/*
