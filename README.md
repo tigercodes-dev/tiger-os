@@ -4,7 +4,7 @@ TigerOS is a simple operating system made from scratch.
 
 Currently, it is still in early beta.
 
-## Requirements
+## Dependencies
 
 Before building the OS, you need a few tools.
 
@@ -13,12 +13,29 @@ Before building the OS, you need a few tools.
 - `qemu` - virtualization software for testing the OS
 - `dosfstools` - creating the filesystem on the disk
 - `mtools` - managing files on the disk
+- GCC cross compiler dependencies
 
-You can install them with these commands on Ubuntu Linux:
+**Here are some commands you can use to install these dependencies:**
+
+### Ubuntu & Debian
 
 ```
-sudo apt update
-sudo apt install nasm make qemu dosfstools mtools
+$ sudo apt update
+$ sudo apt install build-essential bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo nasm make qemu-system-x86 mtools
+```
+
+### Fedora & CentOS
+
+```
+$ sudo dnf upgrade
+$ sudo dnf install gcc gcc-c++ bison flex gmp-devel libmpc-devel mpfr-devel texinfo nasm make qemu-system-x86 mtools
+```
+
+### Arch
+
+```
+$ sudo pacman -Syu
+$ sudo pacman -S base-devel gmp libmpc mpfr nasm make qemu-system-x86 mtools
 ```
 
 ## Building
@@ -27,6 +44,8 @@ sudo apt install nasm make qemu dosfstools mtools
 
 Before building, you need to build the GCC cross compiler and binutils.
 Run `make toolchain` to build the toolchain. This might take a few minutes.
+
+Use `make clean-toolchain` to clear the toolchain directory.
 
 ### Code
 
@@ -40,6 +59,10 @@ If you want to clean the build directory, run `make clean`
 ## Testing
 
 Use the `./run` script to run TigerOS in QEMU.
+
+**It might look something like this:**
+
+![QEMU window](example.png)
 
 ## Debugging
 
