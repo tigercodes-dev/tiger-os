@@ -2,7 +2,7 @@
 #include "memory.h"
 #include "stdio.h"
 #include "hal/hal.h"
-#include "i686/idt.h"
+#include "i686/shutdown.h"
 
 extern uint8_t __entry_start;
 extern uint8_t __bss_start;
@@ -18,9 +18,5 @@ void __attribute__((section(".entry"))) start(uint16_t boot_drive) {
     
     initialize_HAL();
 
-    // Trigger zero division error
-    //__asm("mov $0, %eax");
-    //__asm("div %eax");
-
-    for (;;);
+    halt();
 }

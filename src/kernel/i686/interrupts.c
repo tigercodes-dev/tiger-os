@@ -1,6 +1,6 @@
 #include "interrupts.h"
 #include "../stdio.h"
-#include "../shutdown.h"
+#include "shutdown.h"
 #include "idt.h"
 #include <stddef.h>
 
@@ -69,6 +69,6 @@ void __attribute__((cdecl)) handle_interrupt(InterruptStack* stack) {
         printf("  interrupt=0x%x error=0x%x\n", stack->interrupt, stack->error);
 
         puts("Fatal Error. System cannot continue.\n");
-        halt_system();
+        halt();
     }
 }
