@@ -1,7 +1,7 @@
 bits 32
 
-global outbyte
-outbyte:
+global outb
+outb:
     push ebp
     mov ebp, esp
 
@@ -13,8 +13,8 @@ outbyte:
     pop ebp
     ret
 
-global inbyte
-inbyte:
+global inb
+inb:
     push ebp
     mov ebp, esp
 
@@ -26,8 +26,8 @@ inbyte:
     pop ebp
     ret
 
-global outword
-outword:
+global outw
+outw:
     push ebp
     mov ebp, esp
 
@@ -39,8 +39,8 @@ outword:
     pop ebp
     ret
 
-global inword
-inword:
+global inw
+inw:
     push ebp
     mov ebp, esp
 
@@ -52,8 +52,8 @@ inword:
     pop ebp
     ret
 
-global outdword
-outdword:
+global outl
+outl:
     push ebp
     mov ebp, esp
 
@@ -65,8 +65,8 @@ outdword:
     pop ebp
     ret
 
-global indword
-indword:
+global inl
+inl:
     push ebp
     mov ebp, esp
 

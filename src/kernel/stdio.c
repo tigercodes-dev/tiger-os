@@ -29,10 +29,10 @@ uint8_t get_screen_color(int x, int y) {
 void move_curs(int x, int y) {
     uint16_t pos = y * SCREEN_WIDTH + x;
 
-    outbyte(0x3D4, 0x0F);
-    outbyte(0x3D5, (uint8_t)(pos & 0xFF));
-    outbyte(0x3D4, 0x0E);
-    outbyte(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+    outb(0x3D4, 0x0F);
+    outb(0x3D5, (uint8_t)(pos & 0xFF));
+    outb(0x3D4, 0x0E);
+    outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 }
 
 void clrscreen() {
