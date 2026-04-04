@@ -54,7 +54,9 @@ $(DISK_FILE): bootloader kernel
 	mmd -i $@ "::/SYSTEM"
 	mcopy -i $@ $(BUILD)/kernel.bin "::/SYSTEM/KERNEL.SYS"
 	mattrib -i $@ +h +s "::/SYSTEM/KERNEL.SYS"
-	mcopy -i $@ test.txt "::/SYSTEM/TEST.TXT"
+	mmd -i $@ "::/HOME"
+	mmd -i $@ "::/HOME/DOCS"
+	mcopy -i $@ test.txt "::/HOME/DOCS/TEST.TXT"
 	echo "Finished adding files to disk."
 	echo "$@ is ready."
 
