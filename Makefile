@@ -4,6 +4,9 @@ else
 export BUILD := $(abspath build)
 endif
 
+export ROOT := $(abspath .)
+export SCRIPTS := $(abspath scripts)
+
 export TIGER_OS_VER = 0.0.1-beta
 
 export ASM := nasm
