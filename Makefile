@@ -28,8 +28,7 @@ export TARGET_CCFLAGS := -std=c99 -g
 export TARGET_LDFLAGS :=
 export TARGET_LDLIBS :=
 
-# 32M is recommended minimum size for disk
-DISK_SIZE := 32M
+DISK_SIZE := 64M
 DISK_FILE ?= $(BUILD)/TigerOS.img
 
 .PHONY: all disk bootloader bootsector krnld kernel clean
@@ -43,10 +42,29 @@ include tools.mk
 
 disk: $(DISK_FILE)
 
-$(DISK_FILE): bootloader kernel
+$(DISK_FILE): mbr ospartition
 	mkdir -p $(@D)
 	head -c $(DISK_SIZE) /dev/zero > $@
-	mkfs.fat -F 16 -n "TIGER OS" $@ > /dev/zero
+	dd if=$(BUILD)/mbr.bin of=$@ conv=notrunc > /dev/zero 2>&1
+	dd if=$(BUILD)/ospart.img of=$@ bs=512 seek=63 conv=notrunc > /dev/zero 2>&1
+	echo "Added TigerOS partition to disk."
+	chmod +x $(SCRIPTS)/randomize_serial.sh
+	$(SCRIPTS)/randomize_serial.sh
+	echo "$@ is ready."
+
+# Master Boot Record
+
+mbr:
+	$(MAKE) -C src/boot/mbr
+
+# TigerOS partition
+
+ospartition: $(BUILD)/ospart.img
+
+$(BUILD)/ospart.img: bootloader kernel
+	head -c $(DISK_SIZE) /dev/zero > $@
+	truncate -s -32256 $@
+	mkfs.fat -F 16 -s 8 -n "TIGER OS" $@ > /dev/zero
 	echo "Initialized FAT16"
 	dd if=$(BUILD)/bootsector.bin of=$@ conv=notrunc > /dev/zero 2>&1
 	mcopy -i $@ $(BUILD)/krnld.bin "::/KRNLD.SYS"
@@ -65,7 +83,7 @@ $(DISK_FILE): bootloader kernel
 bootloader: bootsector krnld
 
 bootsector:
-	$(MAKE) -C src/boot
+	$(MAKE) -C src/boot/bootsector
 
 krnld:
 	$(MAKE) -C src/boot/krnld
@@ -107,7 +125,8 @@ version:
 	echo "Version $(TIGER_OS_VER)"
 
 clean:
-	$(MAKE) -C src/boot clean
+	$(MAKE) -C src/boot/mbr clean
+	$(MAKE) -C src/boot/bootsector clean
 	$(MAKE) -C src/boot/krnld clean
 	$(MAKE) -C src/kernel clean
 	rm -rf $(BUILD)/*

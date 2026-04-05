@@ -1,42 +1,22 @@
 #include <stdint.h>
 #include "memory.h"
 #include "stdio.h"
+#include "log.h"
 #include "hal/hal.h"
-#include "i686/shutdown.h"
-#include "i686/irq.h"
-#include "i686/ports.h"
 
 extern uint8_t __entry_start;
 extern uint8_t __bss_start;
 extern uint8_t __end;
 
-void clock(InterruptStack* stack) {
-    putc('.');
-}
-
-void keypress(InterruptStack* stack) {
-    printf("\nScancode: %x\n", inb(0x60));
-}
-
 void __attribute__((section(".entry"))) start(uint16_t boot_drive) {
     memset(&__bss_start, 0, (&__end) - (&__bss_start)); // Clear bss data
 
-    clrscreen();
-    printf("/SYSTEM/KERNEL.SYS loaded at 0x%lx\n", &__entry_start);
-
-    puts("Initializing the Hardware Abstraction Layer...\n");
-    
     initialize_HAL();
 
-    register_handler_IRQ(0, clock);
-    register_handler_IRQ(1, keypress);
+    logf(INFO, "Kernel loaded at 0x%p", &__entry_start);
+    log(INFO, "HAL Initialized.");
 
-    outb(0x64, 0x20);
-    uint8_t cfg = inb(0x60);
-    cfg &= ~(1 << 6);
-    cfg |= 1;
-    outb(0x64, 0x60);
-    outb(0x60, cfg);
+    puts("Kernel is loading...\n");
 
     for (;;);
 }

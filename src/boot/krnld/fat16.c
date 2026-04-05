@@ -13,7 +13,7 @@
 #define ROOT_DIR_HANDLE  -1
 
 #define MEMORY_FAT_ADDR     ((void*)0x20000)
-#define MEMORY_FAT_SIZE     0x00010000
+#define MEMORY_FAT_SIZE     0x00020000
 
 typedef struct {
     uint8_t jmp_instruction[3];
@@ -65,12 +65,12 @@ static uint8_t* fat_bytes = NULL;
 static uint32_t data_section_lba;
 
 bool read_bs(DISK* disk) {
-    return read_disk_sectors(disk, 0, 1, fat_data->BS.boot_sector_bytes);
+    return read_partition_sectors(disk, 0, 1, fat_data->BS.boot_sector_bytes);
 }
 
 bool read_fat(DISK* disk)
 {
-    return read_disk_sectors(disk, fat_data->BS.boot_sector.reserved_sectors, fat_data->BS.boot_sector.sectors_per_fat, fat_bytes);
+    return read_partition_sectors(disk, fat_data->BS.boot_sector.reserved_sectors, fat_data->BS.boot_sector.sectors_per_fat, fat_bytes);
 }
 
 int fat16_init(DISK* disk) {
@@ -101,7 +101,7 @@ int fat16_init(DISK* disk) {
     fat_data->root_dir.current_cluster = root_dir_lba;
     fat_data->root_dir.current_sector_in_cluster = 0;
 
-    if (!read_disk_sectors(disk, root_dir_lba, 1, fat_data->root_dir.buffer)) {
+    if (!read_partition_sectors(disk, root_dir_lba, 1, fat_data->root_dir.buffer)) {
         return 0x0504;
     }
 
@@ -140,7 +140,7 @@ int open_entry(DISK* disk, DirEntry* entry, File** fileptr_out) {
     fd->current_cluster = fd->first_cluster;
     fd->current_sector_in_cluster = 0;
 
-    if (!read_disk_sectors(disk, cluster_to_lba(fd->current_cluster), 1, fd->buffer)) {
+    if (!read_partition_sectors(disk, cluster_to_lba(fd->current_cluster), 1, fd->buffer)) {
         return 0x0512;
     }
 
@@ -174,7 +174,7 @@ uint32_t fat16_read(DISK* disk, File* file, uint32_t byte_count, void* data_out)
             if (fd->public.handle == ROOT_DIR_HANDLE) {
                 ++fd->current_cluster;
 
-                if (!read_disk_sectors(disk, fd->current_cluster, 1, fd->buffer)) {
+                if (!read_partition_sectors(disk, fd->current_cluster, 1, fd->buffer)) {
                     break;
                 }
             } else {
@@ -188,7 +188,7 @@ uint32_t fat16_read(DISK* disk, File* file, uint32_t byte_count, void* data_out)
                     break;
                 }
 
-                if (!read_disk_sectors(disk, cluster_to_lba(fd->current_cluster) + fd->current_sector_in_cluster, 1, fd->buffer)) {
+                if (!read_partition_sectors(disk, cluster_to_lba(fd->current_cluster) + fd->current_sector_in_cluster, 1, fd->buffer)) {
                     break;
                 }
             }

@@ -2,6 +2,7 @@
 #include "../stdio.h"
 #include "shutdown.h"
 #include "idt.h"
+#include "../log.h"
 #include <stddef.h>
 
 static InterruptHandler handlers[256];
@@ -65,6 +66,8 @@ void __attribute__((cdecl)) handle_interrupt(InterruptStack* stack) {
         printf("  interrupt=0x%x error=0x%x\n", stack->interrupt, stack->error);
 
         puts("Fatal Error. System cannot continue.\n");
+        logf(CRITICAL, "Critical exception occured! Exception 0x%x: %s", stack->interrupt, exceptions[stack->interrupt]);
+
         halt();
     }
 }
