@@ -22,4 +22,8 @@ void __attribute__((cdecl)) outl(uint16_t port, uint8_t data);
 // Takes a double word (32 bits) of input from a hardware port
 uint32_t __attribute__((cdecl)) inl(uint16_t port);
 
+static inline void io_wait() {
+    outb(0x80, 0);
+}
+
 #endif

@@ -4,7 +4,7 @@
 #include "idt.h"
 #include <stddef.h>
 
-InterruptHandler handlers[256];
+static InterruptHandler handlers[256];
 
 static const char* const exceptions[] = {
     "Division Error",
@@ -48,11 +48,7 @@ void initialize_ISR() {
     for (int i = 0; i < 256; i++) {
         enable_gate_IDT(i);
     }
-}
-
-void register_handler_ISR(int interrupt, InterruptHandler handler) {
-    handlers[interrupt] = handler;
-    enable_gate_IDT(interrupt);
+    disable_gate_IDT(0x80);
 }
 
 void __attribute__((cdecl)) handle_interrupt(InterruptStack* stack) {
@@ -71,4 +67,9 @@ void __attribute__((cdecl)) handle_interrupt(InterruptStack* stack) {
         puts("Fatal Error. System cannot continue.\n");
         halt();
     }
+}
+
+void register_handler_ISR(int interrupt, InterruptHandler handler) {
+    handlers[interrupt] = handler;
+    enable_gate_IDT(interrupt);
 }

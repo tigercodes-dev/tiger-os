@@ -16,4 +16,7 @@ typedef void (*InterruptHandler)(InterruptStack* stack);
 void initialize_ISR();
 void register_handler_ISR(int interrupt, InterruptHandler handler);
 
+void __attribute__((cdecl)) enable_interrupts();
+void __attribute__((cdecl)) disable_interrupts();
+
 #endif
