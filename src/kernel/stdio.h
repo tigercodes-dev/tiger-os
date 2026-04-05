@@ -1,31 +1,40 @@
 #ifndef _STDIO_H_
 #define _STDIO_H_
 
-// Clears the text on the screen
-void clrscreen();
+#include "hal/vfs.h"
+#include <stdarg.h>
 
-// Prints a character to the screen
+// Prints a character to STDOUT
 void putc(char c);
 
-// Prints a string to the screen
+// Prints a string to STDOUT
 void puts(const char* s);
 
-// Prints an unsigned number with a specified base (2-16)
+// Prints an unsigned number with a specified base (2-16) to STDOUT
 void print_uint(unsigned long long number, int base);
 
-// Prints a signed number with a specified base (2-16)
+// Prints a signed number with a specified base (2-16) to STDOUT
 void print_int(signed long long number, int base);
 
-// Prints a formatted string to the screen
+// Prints a formatted string to STDOUT
 void printf(const char* fmt, ...);
 
-// Prints a character to the debug output
-void debug_putc(char c);
+// Prints a character to a file
+void fputc(char c, fd_t file);
 
-// Prints a string to the debug output
-void debug_puts(const char* s);
+// Prints a string to a file
+void fputs(const char* s, fd_t file);
 
-// Prints a formatted string to the debug output
-void debug_printf(const char* fmt, ...);
+// Prints an unsigned number with a specified base (2-16) to a file
+void fprint_uint(fd_t file, unsigned long long number, int base);
+
+// Prints a signed number with a specified base (2-16) to a file
+void fprint_int(fd_t file, signed long long number, int base);
+
+// Prints a formatted string to a file
+void fprintf(fd_t file, const char* fmt, ...);
+
+// Prints a formatted string to a file using a va_list
+void vfprintf(fd_t file, const char* fmt, va_list args);
 
 #endif
