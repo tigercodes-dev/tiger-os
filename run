@@ -1,3 +1,4 @@
 #!/bin/sh
 
-qemu-system-i386 -m 1024 -device ide-hd,drive=hd0,cyls=512,heads=4,secs=32 -drive file=build/TigerOS.img,format=raw,id=hd0,media=disk,if=none
+qemu-system-i386 -debugcon stdio -m 1024 -device ide-hd,drive=hd0,cyls=512,heads=4,secs=32 -drive file=build/TigerOS.img,format=raw,id=hd0,media=disk,if=none
+echo # Print an extra newline

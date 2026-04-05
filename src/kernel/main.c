@@ -22,8 +22,9 @@ void __attribute__((section(".entry"))) start(uint16_t boot_drive) {
     memset(&__bss_start, 0, (&__end) - (&__bss_start)); // Clear bss data
 
     clrscreen();
-    printf("/SYSTEM/KERNEL.SYS loaded at 0x%lx\n", &__entry_start);
+    debug_printf("Kernel loaded at 0x%lx\n", &__entry_start);
 
+    puts("Starting Kernel...\n");
     puts("Initializing the Hardware Abstraction Layer...\n");
     
     initialize_HAL();

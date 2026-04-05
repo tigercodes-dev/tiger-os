@@ -6,6 +6,8 @@
 #define SCREEN_HEIGHT (int)25
 #define DEFAULT_COLOR 0x07
 
+#define DEBUG_ECHO 1 // Set to 1 to enable echoing from putc to debug_putc, set to 0 to disable.
+
 uint8_t* SCREEN_BUFFER = (uint8_t*)0xB8000;
 
 int pos_x = 0, pos_y = 0;
@@ -65,7 +67,13 @@ void scroll_up(int lines) {
     pos_y -= lines;
 }
 
+void debug_putc(char c);
+
 void putc(char c) {
+    #if DEBUG_ECHO
+    debug_putc(c); // Echo characters to debug putc
+    #endif
+    
     switch (c) {
         case '\n':
             pos_x = 0;
@@ -259,6 +267,178 @@ void printf(const char* fmt, ...) {
                                 break;
                             case LENGTH_LL:
                                 print_uint(va_arg(args, unsigned long long), base);
+                                break;
+                        }
+                    }
+                }
+                
+                state = STATE_NORMAL;
+                length = LENGTH_DEF;
+                base = 10;
+                sign = false;
+                num = false;
+                break;
+        }
+    }
+
+    va_end(args);
+}
+
+// DEBUGGING
+
+#define DEBUG_PORT 0xE9
+
+void debug_putc(char c) {
+    outb(DEBUG_PORT, c);
+}
+
+void debug_puts(const char* s) {
+    for (; *s; s++) {
+        debug_putc(*s);
+    }
+}
+
+void debug_print_uint(unsigned long long number, int base) {
+    char buffer[32];
+    int pos = 0;
+
+    do {
+        unsigned long long rem = number % base;
+        number /= base;
+        buffer[pos++] = HEX_CHARS[rem];
+    } while (number > 0);
+
+    while (--pos >= 0) {
+        debug_putc(buffer[pos]);
+    }
+}
+
+void debug_print_int(long long number, int base) {
+    if (number < 0) {
+        debug_putc('-');
+        print_uint(-number, base);
+    } else {
+        print_uint(number, base);
+    }
+}
+
+void debug_printf(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+
+    PRINTF_State state = STATE_NORMAL;
+    PRINTF_Length length = LENGTH_DEF;
+    int base = 10;
+    bool sign = false;
+    bool num = false;
+
+    for (; *fmt; fmt++) {
+        switch (state) {
+            case STATE_NORMAL:
+                if (*fmt == '%') {
+                    state = STATE_LEN;
+                } else {
+                    debug_putc(*fmt);
+                }
+                break;
+
+            case STATE_LEN:
+                switch (*fmt) {
+                    case 'h':
+                        length = LENGTH_H;
+                        state = STATE_LEN_H;
+                        break;
+                    case 'l':
+                        length = LENGTH_L;
+                        state = STATE_LEN_L;
+                        break;
+                    default:
+                        goto SPEC;
+                }
+                break;
+            
+            case STATE_LEN_H:
+                if (*fmt == 'h') {
+                    length = LENGTH_HH;
+                    state = STATE_SPEC;
+                } else {
+                    goto SPEC;
+                }
+                break;
+
+            case STATE_LEN_L:
+                if (*fmt == 'l') {
+                    length = LENGTH_LL;
+                    state = STATE_SPEC;
+                } else {
+                    goto SPEC;
+                }
+                break;
+
+            case STATE_SPEC:
+            SPEC:
+                switch (*fmt) {
+                    case 'c':
+                        debug_putc((char)va_arg(args, int));
+                        break;
+                    case 's':
+                        debug_puts(va_arg(args, const char*));
+                        break;
+                    case '%':
+                        debug_putc('%');
+                        break;
+                    case 'd':
+                    case 'i':
+                        base = 10;
+                        sign = true;
+                        num = true;
+                        break;
+                    case 'u':
+                        base = 10;
+                        sign = false;
+                        num = true;
+                        break;
+                    case 'x':
+                    case 'X':
+                    case 'p':
+                        base = 16;
+                        sign = false;
+                        num = true;
+                        break;
+                    case 'o':
+                        base = 8;
+                        sign = false;
+                        num = true;
+                        break;
+                }
+
+                if (num) {
+                    if (sign) {
+                        switch (length) {
+                            case LENGTH_HH:
+                            case LENGTH_H:
+                            case LENGTH_DEF:
+                                debug_print_int(va_arg(args, int), base);
+                                break;
+                            case LENGTH_L:
+                                debug_print_int(va_arg(args, long), base);
+                                break;
+                            case LENGTH_LL:
+                                debug_print_int(va_arg(args, long long), base);
+                                break;
+                        }
+                    } else {
+                        switch (length) {
+                            case LENGTH_HH:
+                            case LENGTH_H:
+                            case LENGTH_DEF:
+                                debug_print_uint(va_arg(args, unsigned int), base);
+                                break;
+                            case LENGTH_L:
+                                debug_print_uint(va_arg(args, unsigned long), base);
+                                break;
+                            case LENGTH_LL:
+                                debug_print_uint(va_arg(args, unsigned long long), base);
                                 break;
                         }
                     }
