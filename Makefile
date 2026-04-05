@@ -7,7 +7,7 @@ endif
 export ROOT := $(abspath .)
 export SCRIPTS := $(abspath scripts)
 
-export TIGER_OS_VER = 0.0.1-beta
+export TIGER_OS_VER = 0.0.1
 
 export ASM := nasm
 export CC := gcc
@@ -97,7 +97,13 @@ kernel:
 
 help:
 	echo "TigerOS V$(TIGER_OS_VER) <https://github.com/tigercodes-dev/tiger-os>"
-	echo "By tigercodes-dev <https://github.com/tigercodes-dev>"
+	echo
+	echo "TigerOS  Copyright (C) 2026  tigercodes-dev <https://github.com/tigercodes-dev>"
+	echo "This program comes with ABSOLUTELY NO WARRANTY."
+	echo "This is free software, and you are welcome to redistribute it under certain conditions."
+	echo "See COPYING for more information."
+	echo
+	echo "Makefile Information"
 	echo
 	echo "Build Dir: $(BUILD)"
 	echo "Target Architecture: $(TARGET)"
@@ -121,8 +127,13 @@ help:
 	echo
 
 version:
-	echo "TigerOS by tigercodes-dev <https://github.com/tigercodes-dev>"
-	echo "Version $(TIGER_OS_VER)"
+	echo "TigerOS V$(TIGER_OS_VER) <https://github.com/tigercodes-dev/tiger-os>"
+	echo
+	echo "TigerOS  Copyright (C) 2026  tigercodes-dev <https://github.com/tigercodes-dev>"
+	echo "This program comes with ABSOLUTELY NO WARRANTY."
+	echo "This is free software, and you are welcome to redistribute it under certain conditions."
+	echo "See COPYING for more information."
+	echo
 
 clean:
 	$(MAKE) -C src/boot/mbr clean

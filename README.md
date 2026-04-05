@@ -73,3 +73,13 @@ Then, in another terminal, connect to QEMU in gdb using `target remote :1234`
 - Use `break *[address]` to set a breakpoint.
 - Use `c` to continue execution unt.mine the registers.
 - Use `x [address]` to examine memory. You can specify options with a slash. (ex. `x/2xb` prints two bytes)
+
+
+## Copyright
+
+*TigerOS  Copyright (C) 2026  tigercodes-dev <https://github.com/tigercodes-dev>*
+
+*This program comes with ABSOLUTELY NO WARRANTY.*
+*This is free software, and you are welcome to redistribute it under certain conditions.*
+
+*See [COPYING](./COPYING) for more information.*
