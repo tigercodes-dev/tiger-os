@@ -1,25 +1,27 @@
+; Volume Boot Record - TIGER OS volume
+
 ; NASM directives
 org 0x7C00
 bits 16
 
 ; FAT16 BIOS Parameter Block
 
-jmp short main
+jmp short start
 nop
 
 oem_identifier:         db "TIGER OS" ; 8 Bytes
 bytes_per_sector:       dw 512
-sectors_per_cluster:    db 4
-reserved_sectors:       dw 4
+sectors_per_cluster:    db 8
+reserved_sectors:       dw 8
 fat_count:              db 2
 root_dir_entries:       dw 512
 total_sectors:          dw 0 ; sector size will be checked in 32-bit sector count instead
 media_descriptor:       db 0xF8 ; fixed hard disk
 sectors_per_fat:        dw 64
-sectors_per_track:      dw 32
-disk_heads:             dw 4
+sectors_per_track:      dw 63
+disk_heads:             dw 16
 hidden_sectors:         dd 0
-large_total_sectors:    dd 65536 ; 32MiB disk with 512 byte sectors
+large_total_sectors:    dd 131009 ; 64MiB / 512 sectors - 63 sectors (MBR sectors)
 
 ; Extended BIOS Parameter Block
 
@@ -60,9 +62,9 @@ main:
 
     xor ah, ah
     mov al, [fat_count]
-    mov bx, [sectors_per_fat]
-    mul bx
+    mul word [sectors_per_fat]
     add ax, [reserved_sectors]
+    add ax, PARTITION_START
 
     push ax
 
@@ -111,6 +113,7 @@ main:
     mov di, [si + 26] ; First cluster
 
     mov ax, [reserved_sectors]
+    add ax, PARTITION_START
     mov bx, 0x7E00
     mov cl, [sectors_per_fat]
 
@@ -139,6 +142,8 @@ main:
     pop bx
     add ax, bx
     pop bx
+
+    add ax, PARTITION_START
 
     mov cl, [sectors_per_cluster]
 
@@ -291,6 +296,8 @@ root_dir_size: dw 0
 
 KERNEL_SEGMENT: equ 0x0
 KERNEL_OFFSET: equ 0x500
+
+PARTITION_START: equ 63
 
 ; Padding and BIOS Boot Signature
 times 510-($-$$) db 0

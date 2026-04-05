@@ -1,0 +1,28 @@
+#!/bin/python3
+import sys
+
+def main():
+    if len(sys.argv) <= 3:
+        print(f"Usage: {sys.argv[0]} <lba-address> <sectors> <heads>")
+        return 1
+    
+    try:
+        lba   = int(sys.argv[1])
+        secs  = int(sys.argv[2])
+        heads = int(sys.argv[3])
+
+        sec = lba % secs + 1
+        head = (lba // secs) % heads
+        cyl = (lba // secs) // heads
+
+        print("LBA:", lba)
+        print("Cylinder:", cyl)
+        print("Head:", head)
+        print("Sector:", sec)
+
+    except ValueError:
+        print("Invalid argument. Not a number.")
+        return 2
+
+if __name__ == "__main__":
+    sys.exit(main())
