@@ -4,33 +4,40 @@
 org 0x7C00
 bits 16
 
-; FAT16 BIOS Parameter Block
+; FAT32 BIOS Parameter Block
 
 jmp short main
 nop
 
 oem_identifier:         db "TIGER OS" ; 8 Bytes
 bytes_per_sector:       dw 512
-sectors_per_cluster:    db 8
-reserved_sectors:       dw 8
+sectors_per_cluster:    db 1
+reserved_sectors:       dw 32
 fat_count:              db 2
-root_dir_entries:       dw 512
+root_dir_entries:       dw 0 ; only used by FAT12/16 - FAT32 root dir is in data section
 total_sectors:          dw 0 ; sector size will be checked in 32-bit sector count instead
 media_descriptor:       db 0xF8 ; fixed hard disk
-sectors_per_fat:        dw 64
+sectors_per_fat_bad:    dw 0 ; Not used by FAT32
 sectors_per_track:      dw 63
-disk_heads:             dw 16
+disk_heads:             dw 12
 hidden_sectors:         dd 0
 large_total_sectors:    dd 131009 ; 64MiB / 512 sectors - 63 sectors (MBR sectors)
 
 ; Extended BIOS Parameter Block
 
+sectors_per_fat:        dd 1008
+ebr_flags:              dw 0
+fat_version:            dw 0
+root_dir_cluster:       dd 2
+fs_info_sector:         dw 1
+backup_bs_sector:       dw 6
+                        times 12 db 0 ; reserved bytes
 drive_num:              db 0x80 ; 0x80 = hard disk
-winnt_flags:            db 0 ; Ooly used by Windows NT
+winnt_flags:            db 0 ; reserved
 signature:              db 0x29 ; must be 0x28 or 0x29
 vol_serial_number:      dd 0x44E0C6DC ; doesn't matter for this value, just a random number
 vol_label:              db "TIGER OS   " ; 11 Bytes, pad with spaces
-filesystem_type:        db "FAT16   " ; 8 Bytes
+filesystem_type:        db "FAT32   " ; 8 Bytes
 
 ; Code starts here
 
