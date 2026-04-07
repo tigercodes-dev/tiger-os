@@ -10,8 +10,6 @@ start:
 
     mov sp, 0x600
 
-    mov [drive_num], dl ; store boot drive
-
     ; Move the MBR code to 0x0000:0x0600
     mov si, 0x7C00
     mov di, 0x600
@@ -25,7 +23,7 @@ main:
     mov si, msg_welcome
     call puts
 
-    xor cl, cl ; partition counter
+    xor cx, cx ; cl - loop counter, ch - partitions found count
     mov bx, partition_table
 
 .check_partition:
@@ -33,9 +31,6 @@ main:
     mov al, [bx]
     test al, 0x80 ; check bit 7
     jz .partition_listed ; skip listing non-active partitions
-    mov eax, [bx + 12]
-    test eax, eax ; Check if partition has any sectors
-    jz .partition_listed ; skip 0 sector partitions
 
     mov si, part_primary
     call puts
@@ -50,6 +45,9 @@ main:
     shl bl, cl
     or [active_partitions], bl
     pop bx
+
+    inc ch
+    mov [last_partition], cl
 
     mov si, newline
     call puts
@@ -67,7 +65,15 @@ main:
     mov al, [active_partitions]
     test al, al
     jz no_partitions
+    
+    push cx ; save ch for checking later
+    dec ch
+    jnz .select_partition
+    
+    mov cl, [last_partition]
+    jmp .boot_partition
 
+.select_partition:
     mov si, msg_select_partition
     call puts
 
@@ -96,9 +102,6 @@ main:
     add ax, partition_table
     mov bp, ax
 
-    mov di, 3
-
-.attempt_disk_read:
     mov ah, 0x02 ; read from disk
     mov al, 1 ; read one sector
     mov dh, [bp + 1] ; head of first sector of partition
@@ -107,18 +110,39 @@ main:
     stc
 
     int 0x13
-    jnc .read_done
-
-    dec di
-    jz disk_error
-
-    jmp .attempt_disk_read
+    jc disk_error
 
 .read_done:
+    cmp word [0x7DFE], 0xAA55
+    jne .non_bootable
+
     mov si, newline
     call puts
 
+    ; Reset register values
+    xor ax, ax
+    xor bx, bx
+    xor cx, cx
+    xor dh, dh
+    xor si, si
+    xor di, di
+    xor bp, bp
+    mov sp, 0x7C00
+    mov ds, ax
+    mov es, ax
+    mov ss, ax
+
     jmp 0x0000:0x7C00
+
+.non_bootable:
+    mov si, msg_non_bootable
+    call puts
+
+    pop cx
+    dec ch
+    jz reboot
+
+    jmp .found_all_partitions
 
 .invalid_partition:
     mov si, msg_invalid
@@ -169,17 +193,18 @@ puts:
 
     ret
 
-drive_num: db 0
+last_partition: db 0
 active_partitions: db 0 ; bit 0 - partition 1, bit 1 - partition 2, etc.
 
 ; Messages
 %define endl 0x0D, 0x0A
 
-msg_welcome: db endl, "TigerOS Boot Manager", endl, "Finding partitions...", endl, endl, 0
+msg_welcome: db endl, "Finding partitions...", endl, endl, 0
 msg_select_partition: db endl, "Select a partition: ", 0
-msg_invalid: db "Invalid partition number.", endl, 0
-msg_disk_error: db "Could not read from the disk.", 0
-msg_no_partitions: db "There are no active partitions.", 0
+msg_invalid: db "Invalid partition.", endl, 0
+msg_disk_error: db "Disk error.", 0
+msg_no_partitions: db "No partitions found.", 0
+msg_non_bootable: db "Partition not bootable.", endl, 0
 
 part_primary: db "Primary ", 0
 newline: db endl, 0
@@ -191,27 +216,13 @@ disk_signature: dd 0x9A2C7E08 ; just a random number
 dw 0x0000
 
 ; Partition Table
+; Entries are stored in other files
 partition_table:
 
-; Partition 1
-part1_status: db 0x80 ; bit 7 set - disk is active
-; CHS address of first sector
-part1_head: db 1
-part1_cyl_sec: dw (1 | (0 << 6)) ; bits 0-5 -> sector   bits 6-15 -> cylinder
-
-part1_type: db 0x06 ; FAT16 with more than 65535 sectors
-
-; CHS address of last sector
-part1_head_last: db 0
-part1_cyl_sec_last: dw (32 | (130 << 6))
-
-first_sector_lba: dd 63
-total_sectors: dd 131009
-
-; Partition 2, 3, 4 - empty
-dq 0, 0
-dq 0, 0
-dq 0, 0
+%include "partition1.inc"
+%include "partition2.inc"
+%include "partition3.inc"
+%include "partition4.inc"
 
 ; BIOS Boot Signature - End of MBR
 db 0x55, 0xAA

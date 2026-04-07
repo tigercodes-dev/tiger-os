@@ -6,7 +6,7 @@ bits 16
 
 ; FAT16 BIOS Parameter Block
 
-jmp short start
+jmp short main
 nop
 
 oem_identifier:         db "TIGER OS" ; 8 Bytes
@@ -33,15 +33,6 @@ vol_label:              db "TIGER OS   " ; 11 Bytes, pad with spaces
 filesystem_type:        db "FAT16   " ; 8 Bytes
 
 ; Code starts here
-start:
-    xor ax, ax
-    mov ds, ax
-    mov es, ax
-    mov ss, ax
-
-    mov sp, 0x7C00
-
-    jmp 0:main
 
 main:
     mov [drive_num], dl
