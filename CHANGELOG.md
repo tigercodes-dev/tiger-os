@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- FAT32 support
+- Keyboard and mouse drivers
+- Disk creation tools for partitioning & adding files more easily
+
+## [0.0.2] - 2026-04-06
+
+### Changed
+
+- Improved MBR interface for booting
+    - Automatically select partition if there is only one.
+    - Reset registers before loading boot sector.
+- Split partition table into multiple files.
+
+### Added
+
+- Added this changelog to log future updates.
+- Added copyright messages.
+
 ## [0.0.1] - 2026-04-05
 
 ### Added

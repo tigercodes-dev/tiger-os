@@ -7,7 +7,7 @@ endif
 export ROOT := $(abspath .)
 export SCRIPTS := $(abspath scripts)
 
-export TIGER_OS_VER = 0.0.1
+export TIGER_OS_VER = 0.0.2
 
 export ASM := nasm
 export CC := gcc
