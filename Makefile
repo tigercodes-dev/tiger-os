@@ -48,6 +48,7 @@ $(DISK_FILE): mbr ospartition
 	mkdir -p $(@D)
 	head -c $(DISK_SIZE) /dev/zero > $@
 	tdisk $@ mbr $(BUILD)/mbr.bin -q -x > /dev/zero
+	tdisk $@ create-partition primary -t "FAT32 CHS" > /dev/zero
 	dd if=$(BUILD)/ospart.img of=$@ bs=512 seek=63 conv=notrunc > /dev/zero 2>&1
 	echo "Added TigerOS partition to disk."
 	echo "$@ is ready."

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "stringutil.h"
 
 #include "mbr.h"
 
@@ -37,8 +38,10 @@ int main(int argc, char* argv[]) {
         return 2;
     }
 
-    if (strcmp(subcmd, "mbr") == 0) {
+    if (stricmp(subcmd, "mbr") == 0) {
         exit_code = CMD_mbr(file, argc - 2, &argv[2]);
+    } else if (stricmp(subcmd, "create-partition") == 0) {
+        exit_code = CMD_create_partition(file, argc - 2, &argv[2]);
     } else {
         fprintf(stderr, "\e[31;1mError:\e[0m The subcommand '%s' is invalid.\nUse %s --help to see all subcommands.\n", filename, argv[0]);
         fclose(file);
