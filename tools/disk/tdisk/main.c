@@ -5,6 +5,7 @@
 #include "stringutil.h"
 
 #include "mbr.h"
+#include "format.h"
 
 #define VERSION "1.0.0"
 
@@ -42,6 +43,8 @@ int main(int argc, char* argv[]) {
         exit_code = CMD_mbr(file, argc - 2, &argv[2]);
     } else if (stricmp(subcmd, "create-partition") == 0) {
         exit_code = CMD_create_partition(file, argc - 2, &argv[2]);
+    } else if (stricmp(subcmd, "format") == 0) {
+        exit_code = CMD_format(file, argc - 2, &argv[2]);
     } else {
         fprintf(stderr, "\e[31;1mError:\e[0m The subcommand '%s' is invalid.\nUse %s --help to see all subcommands.\n", filename, argv[0]);
         fclose(file);

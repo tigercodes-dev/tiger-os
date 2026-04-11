@@ -4,6 +4,7 @@
 #include "string.h"
 #include "diskutil.h"
 #include "stringutil.h"
+#include "mathutil.h"
 #include <ctype.h>
 
 int CMD_mbr(FILE* file, int argc, char* argv[]) {
@@ -113,7 +114,7 @@ uint8_t parse_system_type(char* type) {
     }
 }
 
-const PartitionTableEntry ZERO_ENTRY = {0};
+static const PartitionTableEntry ZERO_ENTRY = {0};
 
 int CMD_create_partition(FILE* file, int argc, char* argv[]) {
     if (argc < 2) {
@@ -207,7 +208,7 @@ int CMD_create_partition(FILE* file, int argc, char* argv[]) {
         fprintf(stderr, "\e[33;1mWarning:\e[0m Not all of the data was able to be written to the disk.\n");
     }
 
-    printf("Partition created.\nNumber: %s %i.\n", partition_number >= 5 ? "Extended" : "Primary", partition_number);
+    printf("Partition created.\nPartition number: %i.\n", partition_number);
 
     return 0;
 }

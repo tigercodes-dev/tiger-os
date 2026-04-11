@@ -3,8 +3,8 @@
 
 EXEC := $(BUILD)/tools/tdisk
 
-SRC_C := $(wildcard *.c)
-HEADERS_C := $(wildcard *.h)
+SRC_C := $(shell find -name "*.c")
+HEADERS_C := $(shell find -name "*.h")
 
 all: tdisk
 
