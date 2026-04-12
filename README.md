@@ -35,7 +35,13 @@ $ sudo dnf install gcc gcc-c++ bison flex gmp-devel libmpc-devel mpfr-devel texi
 
 ```
 $ sudo pacman -Syu
-$ sudo pacman -S base-devel gmp libmpc mpfr nasm make qemu-system-x86 mtools
+$ sudo pacman -S base-devel gmp libmpc mpfr nasm make qemu-system-x86 dosfstools mtools
+```
+
+### Homebrew
+
+```
+$ brew install gcc bison flex gmp libmpc mpfr texinfo nasm make dosfstools mtools
 ```
 
 ## Building
@@ -62,7 +68,11 @@ Use the `./run` script to run TigerOS in QEMU.
 
 **It might look something like this:**
 
-![QEMU window](example.png)
+![QEMU window](docs/example.png)
+
+**You will also see debug logs in the terminal if you are using QEMU.**
+
+![QEMU debug logs](docs/exampledebug.png)
 
 ## Debugging
 
