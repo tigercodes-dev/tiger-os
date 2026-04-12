@@ -216,13 +216,13 @@ disk_signature: dd 0x9A2C7E08 ; just a random number
 dw 0x0000
 
 ; Partition Table
-; Entries are stored in other files
+; Entries are added by TDISK
 partition_table:
 
-%include "partition1.inc"
-%include "partition2.inc"
-%include "partition3.inc"
-%include "partition4.inc"
+dq 0, 0
+dq 0, 0
+dq 0, 0
+dq 0, 0
 
 ; BIOS Boot Signature - End of MBR
 db 0x55, 0xAA

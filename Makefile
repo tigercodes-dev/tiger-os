@@ -28,13 +28,15 @@ export TARGET_CCFLAGS := -std=c99 -g
 export TARGET_LDFLAGS :=
 export TARGET_LDLIBS :=
 
+export PATH := $(BUILD)/tools:$(PATH)
+
 DISK_SIZE := 64M
 DISK_FILE ?= $(BUILD)/TigerOS.img
 
-.PHONY: all disk bootloader bootsector krnld kernel clean
+.PHONY: all disk tools tdisk mbr ospartition bootloader bootsector krnld kernel clean
 .SILENT:
 
-all: disk
+all: tools disk
 
 include tools.mk
 
@@ -45,11 +47,10 @@ disk: $(DISK_FILE)
 $(DISK_FILE): mbr ospartition
 	mkdir -p $(@D)
 	head -c $(DISK_SIZE) /dev/zero > $@
-	dd if=$(BUILD)/mbr.bin of=$@ conv=notrunc > /dev/zero 2>&1
+	tdisk $@ mbr $(BUILD)/mbr.bin -q -x > /dev/zero
+	tdisk $@ create-partition primary -t "FAT32 CHS" > /dev/zero
 	dd if=$(BUILD)/ospart.img of=$@ bs=512 seek=63 conv=notrunc > /dev/zero 2>&1
 	echo "Added TigerOS partition to disk."
-	chmod +x $(SCRIPTS)/randomize_serial.sh
-	$(SCRIPTS)/randomize_serial.sh
 	echo "$@ is ready."
 
 # Master Boot Record
@@ -93,6 +94,13 @@ krnld:
 
 kernel:
 	$(MAKE) -C src/kernel
+
+# Tools
+
+tools: tdisk
+
+tdisk:
+	$(MAKE) -C tools/disk/tdisk
 
 # Special Targets
 
@@ -141,5 +149,6 @@ clean:
 	$(MAKE) -C src/boot/bootsector clean
 	$(MAKE) -C src/boot/krnld clean
 	$(MAKE) -C src/kernel clean
+	$(MAKE) -C tools/disk/tdisk clean
 	rm -rf $(BUILD)/*
 	echo "Cleaned build directory."
