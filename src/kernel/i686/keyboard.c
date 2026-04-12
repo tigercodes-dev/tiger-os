@@ -1,6 +1,6 @@
 #include "keyboard.h"
 #include "irq.h"
-#include "ports.h"
+#include "io.h"
 #include "../log.h"
 #include "../stdio.h"
 #include "../ctype.h"

@@ -2,7 +2,6 @@
 #include "pic.h"
 #include <stddef.h>
 #include "../stdio.h"
-#include "ports.h"
 
 #define PIC_OFFSET 0x20
 

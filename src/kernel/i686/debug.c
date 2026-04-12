@@ -1,5 +1,5 @@
 #include "debug.h"
-#include "ports.h"
+#include "io.h"
 
 #define DEBUG_PORT 0xE9
 

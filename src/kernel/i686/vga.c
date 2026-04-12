@@ -1,5 +1,5 @@
 #include "vga.h"
-#include "ports.h"
+#include "io.h"
 #include <stdarg.h>
 
 #define SCREEN_WIDTH (int)80
