@@ -1,13 +1,13 @@
-#ifndef KLD_FAT16_H
-#define KLD_FAT16_H
+#ifndef KLD_FAT32_H
+#define KLD_FAT32_H
 
 #include <stdint.h>
 #include "disk.h"
 
-typedef struct{
+typedef struct {
     uint8_t name[11];
     uint8_t attributes;
-    uint8_t winnt_reserved;
+    uint8_t __reserved;
     uint8_t creation_time_hundredths;
     uint16_t creation_time;
     uint16_t creation_date;
@@ -36,10 +36,10 @@ enum FatAttributes {
     LFN = READ_ONLY | HIDDEN | SYSTEM | VOLUME_ID,
 };
 
-int fat16_init(DISK* disk);
-int fat16_open(DISK* disk, const char* path, File** fptr_out);
-uint32_t fat16_read(DISK* disk, File* file, uint32_t byteCount, void* dataOut);
-bool fat16_read_entry(DISK* disk, File* file, DirEntry* dirEntry);
-void fat16_close(File* file);
+int fat32_init(DISK* disk);
+int fat32_open(DISK* disk, const char* path, File** fptr_out);
+uint32_t fat32_read(DISK* disk, File* file, uint32_t byte_count, void* data_out);
+bool fat32_read_entry(DISK* disk, File* file, DirEntry* dirEntry);
+void fat32_close(File* file);
 
 #endif

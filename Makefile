@@ -64,9 +64,10 @@ ospartition: $(BUILD)/ospart.img
 $(BUILD)/ospart.img: bootloader kernel
 	head -c $(DISK_SIZE) /dev/zero > $@
 	truncate -s -32256 $@
-	mkfs.fat -F 16 -s 8 -n "TIGER OS" $@ > /dev/zero
-	echo "Initialized FAT16"
+	mkfs.fat -F 32 -n "TIGER OS" -g 16/63 $@ > /dev/zero
+	echo "Initialized FAT32"
 	dd if=$(BUILD)/bootsector.bin of=$@ conv=notrunc > /dev/zero 2>&1
+	dd if=$(BUILD)/bootsector.bin bs=512 seek=6 of=$@ conv=notrunc > /dev/zero 2>&1
 	mcopy -i $@ $(BUILD)/krnld.bin "::/KRNLD.SYS"
 	mattrib -i $@ +h +s "::/KRNLD.SYS"
 	mmd -i $@ "::/SYSTEM"

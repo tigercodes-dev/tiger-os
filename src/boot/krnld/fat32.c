@@ -1,4 +1,4 @@
-#include "fat16.h"
+#include "fat32.h"
 #include "math.h"
 #include "memory.h"
 #include "string.h"
@@ -7,13 +7,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define SECTOR_SIZE      512
-#define MAX_PATH         256
-#define MAX_FILE_HANDLES 12
-#define ROOT_DIR_HANDLE  -1
+#define SECTOR_SIZE         512
+#define MAX_PATH            256
+#define MAX_FILE_HANDLES    12
+#define FAT_READ_SECTORS    64
 
 #define MEMORY_FAT_ADDR     ((void*)0x20000)
-#define MEMORY_FAT_SIZE     0x00020000
+#define MEMORY_FAT_SIZE     0x00010000
 
 typedef struct {
     uint8_t jmp_instruction[3];
@@ -25,12 +25,19 @@ typedef struct {
     uint16_t root_dir_entries;
     uint16_t total_sectors;
     uint8_t media_descriptor;
-    uint16_t sectors_per_fat;
+    uint16_t bad_sectors_per_fat;
     uint16_t sectors_per_track;
     uint16_t heads;
     uint32_t hidden_sectors;
     uint32_t large_sector_count;
 
+    uint32_t sectors_per_fat;
+    uint16_t flags;
+    uint16_t fat_version;
+    uint32_t root_dir_cluster;
+    uint16_t fsinfo_sector;
+    uint16_t backup_boot_sector;
+    uint8_t __reserved[12];
     uint8_t drive_num;
     uint8_t winnt_flags;
     uint8_t signature;
@@ -56,13 +63,13 @@ typedef struct {
         uint8_t boot_sector_bytes[SECTOR_SIZE];
     } BS;
 
-    FileData root_dir;
     FileData opened_files[MAX_FILE_HANDLES];
 } FatData;
 
 static FatData* fat_data;
 static uint8_t* fat_bytes = NULL;
 static uint32_t data_section_lba;
+static DirEntry root_dir_entry;
 
 bool read_bs(DISK* disk) {
     return read_partition_sectors(disk, 0, 1, fat_data->BS.boot_sector_bytes);
@@ -70,17 +77,17 @@ bool read_bs(DISK* disk) {
 
 bool read_fat(DISK* disk)
 {
-    return read_partition_sectors(disk, fat_data->BS.boot_sector.reserved_sectors, fat_data->BS.boot_sector.sectors_per_fat, fat_bytes);
+    return read_partition_sectors(disk, fat_data->BS.boot_sector.reserved_sectors, FAT_READ_SECTORS, fat_bytes);
 }
 
-int fat16_init(DISK* disk) {
+int fat32_init(DISK* disk) {
     fat_data = (FatData*)MEMORY_FAT_ADDR;
     if (!read_bs(disk)) {
         return 0x0501;
     }
 
     fat_bytes = (uint8_t*)fat_data + sizeof(FatData);
-    uint32_t fat_size = fat_data->BS.boot_sector.bytes_per_sector * fat_data->BS.boot_sector.sectors_per_fat;
+    uint32_t fat_size = fat_data->BS.boot_sector.bytes_per_sector * FAT_READ_SECTORS;
     if (sizeof(FatData) + fat_size >= MEMORY_FAT_SIZE) {
         return 0x0502;
     }
@@ -89,24 +96,12 @@ int fat16_init(DISK* disk) {
         return 0x0503;
     }
 
-    uint32_t root_dir_lba = fat_data->BS.boot_sector.reserved_sectors + fat_data->BS.boot_sector.sectors_per_fat * fat_data->BS.boot_sector.fat_count;
-    uint32_t root_dir_size = sizeof(DirEntry) * fat_data->BS.boot_sector.root_dir_entries;
+    root_dir_entry.size = 0;
+    root_dir_entry.attributes |= DIRECTORY;
+    root_dir_entry.first_cluster_low = (uint16_t)(fat_data->BS.boot_sector.root_dir_cluster & 0xFFFF);
+    root_dir_entry.first_cluster_high = (uint16_t)(fat_data->BS.boot_sector.root_dir_cluster >> 16);
 
-    fat_data->root_dir.public.handle = ROOT_DIR_HANDLE;
-    fat_data->root_dir.public.is_dir = true;
-    fat_data->root_dir.public.position = 0;
-    fat_data->root_dir.public.size = sizeof(DirEntry) * fat_data->BS.boot_sector.root_dir_entries;
-    fat_data->root_dir.opened = true;
-    fat_data->root_dir.first_cluster = root_dir_lba;
-    fat_data->root_dir.current_cluster = root_dir_lba;
-    fat_data->root_dir.current_sector_in_cluster = 0;
-
-    if (!read_partition_sectors(disk, root_dir_lba, 1, fat_data->root_dir.buffer)) {
-        return 0x0504;
-    }
-
-    uint32_t root_dir_sectors = (root_dir_size + fat_data->BS.boot_sector.bytes_per_sector - 1) / fat_data->BS.boot_sector.bytes_per_sector;
-    data_section_lba = root_dir_lba + root_dir_sectors;
+    data_section_lba = fat_data->BS.boot_sector.reserved_sectors + fat_data->BS.boot_sector.sectors_per_fat * fat_data->BS.boot_sector.fat_count;
 
     for (int i = 0; i < MAX_FILE_HANDLES; i++) {
         fat_data->opened_files[i].opened = false;
@@ -124,6 +119,7 @@ int open_entry(DISK* disk, DirEntry* entry, File** fileptr_out) {
     for (int i = 0; i < MAX_FILE_HANDLES; i++) {
         if (!fat_data->opened_files[i].opened) {
             handle = i;
+            break;
         }
     }
 
@@ -150,11 +146,11 @@ int open_entry(DISK* disk, DirEntry* entry, File** fileptr_out) {
 }
 
 uint32_t get_next_cluster(uint32_t current_cluster) {
-    return *(uint16_t*)(fat_bytes + current_cluster * 2);
+    return *(uint32_t*)(fat_bytes + current_cluster * 4);
 }
 
-uint32_t fat16_read(DISK* disk, File* file, uint32_t byte_count, void* data_out) {
-    FileData* fd = (file->handle == ROOT_DIR_HANDLE) ? &fat_data->root_dir : &fat_data->opened_files[file->handle];
+uint32_t fat32_read(DISK* disk, File* file, uint32_t byte_count, void* data_out) {
+    FileData* fd = &fat_data->opened_files[file->handle];
     uint8_t* byte_data_out = (uint8_t*)data_out;
 
     if (!fd->public.is_dir || (fd->public.is_dir && fd->public.size != 0)) {
@@ -171,26 +167,18 @@ uint32_t fat16_read(DISK* disk, File* file, uint32_t byte_count, void* data_out)
         byte_count -= take;
 
         if (left == take) {
-            if (fd->public.handle == ROOT_DIR_HANDLE) {
-                ++fd->current_cluster;
+            if (++fd->current_sector_in_cluster >= fat_data->BS.boot_sector.sectors_per_cluster) {
+                fd->current_sector_in_cluster = 0;
+                fd->current_cluster = get_next_cluster(fd->current_cluster);
+            }
 
-                if (!read_partition_sectors(disk, fd->current_cluster, 1, fd->buffer)) {
-                    break;
-                }
-            } else {
-                if (++fd->current_sector_in_cluster >= fat_data->BS.boot_sector.sectors_per_cluster) {
-                    fd->current_sector_in_cluster = 0;
-                    fd->current_cluster = get_next_cluster(fd->current_cluster);
-                }
+            if (fd->current_cluster >= 0x0FFFFFF8) {
+                fd->public.size = fd->public.position;
+                break;
+            }
 
-                if (fd->current_cluster >= 0xFFF8) {
-                    fd->public.size = fd->public.position;
-                    break;
-                }
-
-                if (!read_partition_sectors(disk, cluster_to_lba(fd->current_cluster) + fd->current_sector_in_cluster, 1, fd->buffer)) {
-                    break;
-                }
+            if (!read_partition_sectors(disk, cluster_to_lba(fd->current_cluster) + fd->current_sector_in_cluster, 1, fd->buffer)) {
+                break;
             }
         } 
     }
@@ -198,20 +186,15 @@ uint32_t fat16_read(DISK* disk, File* file, uint32_t byte_count, void* data_out)
     return byte_data_out - (uint8_t*)data_out;
 }
 
-bool fat16_read_entry(DISK* disk, File* file, DirEntry* dir_entry) {
-    return fat16_read(disk, file, sizeof(DirEntry), dir_entry) == sizeof(DirEntry);
+bool fat32_read_entry(DISK* disk, File* file, DirEntry* dir_entry) {
+    return fat32_read(disk, file, sizeof(DirEntry), dir_entry) == sizeof(DirEntry);
 }
 
-void fat16_close(File* file) {
-    if (file->handle == ROOT_DIR_HANDLE) {
-        file->position = 0;
-        fat_data->root_dir.current_cluster = fat_data->root_dir.first_cluster;
-    } else {
-        fat_data->opened_files[file->handle].opened = false;
-    }
+void fat32_close(File* file) {
+    fat_data->opened_files[file->handle].opened = false;
 }
 
-bool fat16_find_file(DISK* disk, File* file, const char* name, DirEntry* entry_out) {
+bool fat32_find_file(DISK* disk, File* file, const char* name, DirEntry* entry_out) {
     char fat_name[12];
     DirEntry entry;
 
@@ -233,7 +216,7 @@ bool fat16_find_file(DISK* disk, File* file, const char* name, DirEntry* entry_o
         } 
     }
 
-    while (fat16_read_entry(disk, file, &entry)) {
+    while (fat32_read_entry(disk, file, &entry)) {
         if (memcmp(fat_name, entry.name, 11) == 0) {
             *entry_out = entry;
             return true;
@@ -243,14 +226,19 @@ bool fat16_find_file(DISK* disk, File* file, const char* name, DirEntry* entry_o
     return false;
 }
 
-int fat16_open(DISK* disk, const char* path, File** fptr_out) {
+int fat32_open(DISK* disk, const char* path, File** fptr_out) {
     char name[MAX_PATH];
 
     if (path[0] == '/') {
         path++;
     }
 
-    File* current = &fat_data->root_dir.public;
+    File* current;
+    int error = open_entry(disk, &root_dir_entry, &current);
+    printf("%i\n", fat_data->opened_files[current->handle].opened);
+    if (error != 0) {
+        return error;
+    }
 
     while (*path) {
         bool last = false;
@@ -269,8 +257,8 @@ int fat16_open(DISK* disk, const char* path, File** fptr_out) {
         }
 
         DirEntry entry;
-        if (fat16_find_file(disk, current, name, &entry)) {
-            fat16_close(current);
+        if (fat32_find_file(disk, current, name, &entry)) {
+            fat32_close(current);
 
             if (!last && entry.attributes & DIRECTORY == 0) {
                 *fptr_out = NULL;
@@ -283,7 +271,7 @@ int fat16_open(DISK* disk, const char* path, File** fptr_out) {
                 return error;
             }
         } else {
-            fat16_close(current);
+            fat32_close(current);
             *fptr_out = NULL;
             return 0x0532;
         }

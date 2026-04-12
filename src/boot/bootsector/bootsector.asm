@@ -4,37 +4,47 @@
 org 0x7C00
 bits 16
 
-; FAT16 BIOS Parameter Block
+; FAT32 BIOS Parameter Block
 
 jmp short main
 nop
 
 oem_identifier:         db "TIGER OS" ; 8 Bytes
 bytes_per_sector:       dw 512
-sectors_per_cluster:    db 8
-reserved_sectors:       dw 8
+sectors_per_cluster:    db 1
+reserved_sectors:       dw 32
 fat_count:              db 2
-root_dir_entries:       dw 512
+root_dir_entries:       dw 0 ; only used by FAT12/16 - FAT32 root dir is in data section
 total_sectors:          dw 0 ; sector size will be checked in 32-bit sector count instead
 media_descriptor:       db 0xF8 ; fixed hard disk
-sectors_per_fat:        dw 64
+sectors_per_fat_bad:    dw 0 ; Not used by FAT32
 sectors_per_track:      dw 63
-disk_heads:             dw 16
-hidden_sectors:         dd 0
+disk_heads:             dw 12
+hidden_sectors:         dd 63
 large_total_sectors:    dd 131009 ; 64MiB / 512 sectors - 63 sectors (MBR sectors)
 
 ; Extended BIOS Parameter Block
 
+sectors_per_fat:        dd 1008
+ebr_flags:              dw 0
+fat_version:            dw 0
+root_dir_cluster:       dd 2
+fs_info_sector:         dw 1
+backup_bs_sector:       dw 6
+                        times 12 db 0 ; reserved bytes
 drive_num:              db 0x80 ; 0x80 = hard disk
-winnt_flags:            db 0 ; Ooly used by Windows NT
+winnt_flags:            db 0 ; reserved
 signature:              db 0x29 ; must be 0x28 or 0x29
 vol_serial_number:      dd 0x44E0C6DC ; doesn't matter for this value, just a random number
 vol_label:              db "TIGER OS   " ; 11 Bytes, pad with spaces
-filesystem_type:        db "FAT16   " ; 8 Bytes
+filesystem_type:        db "FAT32   " ; 8 Bytes
 
 ; Code starts here
 
 main:
+    mov si, msg_load
+    call puts
+
     mov [drive_num], dl
 
     push es
@@ -51,139 +61,78 @@ main:
     inc dh
     mov [disk_heads], dh
 
-    xor ah, ah
-    mov al, [fat_count]
-    mul word [sectors_per_fat]
+    mov ax, [reserved_sectors]
+    mov cl, 64
+    mov bx, 0x7E00
+    mov dl, [drive_num]
+    call disk_read
+
+    mov di, [krnld_cluster]
+    mov bx, KRNLD_SEGMENT
+    mov es, bx
+    mov bx, KRNLD_OFFSET
+
+.load_krnld:
+    push dx
+    mov ax, [sectors_per_fat]
+    xor cx, cx
+    mov cl, [fat_count]
+    mul cx
     add ax, [reserved_sectors]
-    add ax, PARTITION_START
+    pop dx
 
     push ax
-
-    mov ax, [root_dir_entries]
-    shl ax, 5 ; Multiply by 32
-
-    xor dx, dx
-    div word [bytes_per_sector]
-
-    test dx, dx
-    jz .read_root_dir
-    inc ax
-
-.read_root_dir:
-    mov [root_dir_size], ax
-    mov cl, al
-
-    pop ax
-
-    mov dl, [drive_num]
-    mov bx, 0x7E00
-    call disk_read
-
-    mov bx, 0
-    mov si, 0x7E00
-
-.find_kernel_sys:
-    mov di, kernel_sys
-    mov cx, 11 ; read 11 bytes 8.3 filename
-
-    push si
-    repe cmpsb
-    pop si
-
-    je .begin_load_kernel
-
-    add si, 32
-
-    inc bx
-    cmp bx, [root_dir_entries]
-    jl .find_kernel_sys
-
-    jmp kernel_missing_error
-
-.begin_load_kernel:
-    mov di, [si + 26] ; First cluster
-
-    mov ax, [reserved_sectors]
-    add ax, PARTITION_START
-    mov bx, 0x7E00
-    mov cl, [sectors_per_fat]
-
-    call disk_read
-
-    mov bx, KERNEL_SEGMENT
-    mov es, bx
-    mov bx, KERNEL_OFFSET
-
-.load_kernel_cluster:
+    push dx
     mov ax, di
     sub ax, 2
+    xor cx, cx
+    mov cl, [sectors_per_cluster]
+    mul cx
+    pop dx
+    pop cx
 
-    mul byte [sectors_per_cluster]
-
-    ; sectors before first file = reserved sectors + (sectors per fat * fat count) + root dir size
-    add ax, [reserved_sectors]
-    add ax, [root_dir_size]
-
-    push bx
-    push ax
-
-    mov ax, [sectors_per_fat]
-    mul byte [fat_count]
-
-    pop bx
-    add ax, bx
-    pop bx
-
-    add ax, PARTITION_START
+    add ax, cx
 
     mov cl, [sectors_per_cluster]
-
+    mov dl, [drive_num]
     call disk_read
 
-    ; increase bx position by bytes per cluster - (bytes per sector) * (sectors per cluster)
     push dx
+
     mov ax, [bytes_per_sector]
-    mul word [sectors_per_cluster]
+    xor dx, dx
+    mov dl, [sectors_per_cluster]
+    mul dx
+
     pop dx
+
     add bx, ax
 
-    mov ax, di
-    shl ax, 1 ; multiply by 2 (2 byte / 16 bit clusters)
+    mov bp, di
+    shl bp, 2 ; multiply by 2
+    
+    mov eax, [bp + 0x7E00]
+    cmp eax, 0x0FFFFFF8
+    jge .jump_to_krnld
 
-    mov si, 0x7E00
-    add si, ax
+    mov di, ax
+    jmp .load_krnld
 
-    mov di, [ds:si]
-
-    ; Check if it's the end of the file
-    cmp di, 0xFFF8
-    jae .jump_to_kernel
-
-    jmp .load_kernel_cluster
-
-.jump_to_kernel:
+.jump_to_krnld:
     mov dl, [drive_num]
 
-    mov ax, KERNEL_SEGMENT
+    mov ax, KRNLD_SEGMENT
     mov ds, ax
     mov es, ax
 
-    jmp KERNEL_SEGMENT:KERNEL_OFFSET
+    jmp KRNLD_SEGMENT:KRNLD_OFFSET
 
 disk_error:
     mov si, err_disk
     call puts
     jmp reboot
 
-kernel_missing_error:
-    mov si, err_kernel
-    call puts
-    jmp reboot
-
 reboot:
-    mov si, msg_reboot
-    call puts
-
     ; wait for keypress
     mov ah, 0x00
     int 16h
@@ -260,6 +209,7 @@ disk_read:
     pusha
     push cx
 
+    add ax, [hidden_sectors]
     call lba_to_chs
 
     pop ax
@@ -277,18 +227,15 @@ disk_read:
 
 ; Message Strings (null terminated)
 
+msg_load: db "TigerOS loading...", 0
 err_disk: db "Disk error.", 0
-err_kernel: db "KRNLD.SYS is missing.", 0
-msg_reboot: db endl, "Press any key to reboot...", 0
 
-kernel_sys: db "KRNLD   SYS"
+data_section_start: dw 0
 
-root_dir_size: dw 0
+krnld_cluster: dw 3
 
-KERNEL_SEGMENT: equ 0x0
-KERNEL_OFFSET: equ 0x500
-
-PARTITION_START: equ 63
+KRNLD_SEGMENT: equ 0x0
+KRNLD_OFFSET: equ 0x500
 
 ; Padding and BIOS Boot Signature
 times 510-($-$$) db 0

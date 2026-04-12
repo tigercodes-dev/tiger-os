@@ -1,5 +1,5 @@
 #!/bin/bash
 
 echo "Run GDB in another terminal. Connect to localhost:1234"
-qemu-system-i386 -debugcon stdio -m 1024 -device ide-hd,drive=hd0 -drive file=build/TigerOS.img,format=raw,id=hd0,media=disk,if=none -s -S
+qemu-system-i386 -debugcon stdio -m 1024 -device ide-hd,drive=hd0,cyls=131,heads=16,secs=63 -drive file=build/TigerOS.img,format=raw,id=hd0,media=disk,if=none -s -S
 echo # Print an extra newline
