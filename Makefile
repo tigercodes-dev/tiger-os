@@ -76,7 +76,7 @@ $(BUILD)/ospart.img: bootloader kernel
 	mattrib -i $@ +h +s "::/SYSTEM/KERNEL.SYS"
 	mmd -i $@ "::/HOME"
 	mmd -i $@ "::/HOME/DOCS"
-	mcopy -i $@ test.txt "::/HOME/DOCS/TEST.TXT"
+	mcopy -i $@ disk-files/lorem.txt "::/HOME/DOCS/LOREM.TXT"
 	echo "Finished adding files to disk."
 	echo "$@ is ready."
 
