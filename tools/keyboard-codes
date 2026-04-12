@@ -1,0 +1,4 @@
+#!/bin/python3
+
+while True:
+    print(f"Char Code: {hex(ord(input()[0]))}")
