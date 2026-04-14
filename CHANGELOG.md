@@ -9,8 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Keyboard and mouse drivers
+- Disk driver for kernel
+- Mouse driver
 - Disk creation tools for partitioning & adding files more easily
+
+## [0.2.0] - 2026-04-13
+
+### Added
+
+- Keyboard scancode to character translation
+- Typing on screen.
+- More descriptive MBR partition selection interface.
+
+### Changed
+
+- Renamed `ports.h` to `io.h` in kernel.
+- Moved disk files to `disk-files` directory.
+- Changed `test.txt` to `lorem.txt` with lorem ipsum text.
 
 ## [0.1.0] - 2026-04-11
 
