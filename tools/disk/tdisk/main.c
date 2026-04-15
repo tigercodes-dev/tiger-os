@@ -6,11 +6,13 @@
 
 #include "mbr.h"
 #include "format.h"
+#include "disk.h"
 
 #define VERSION "1.0.0"
 
 int main(int argc, char* argv[]) {
     if (strcmp(argv[1], "--help") == 0) {
+        printf("TDISK - Tiger Disk Utility v%s\nBy tigercodes-dev <https://github.com/tigercodes-dev>\nThis tool is included in TigerOS.\n\n", VERSION);
         printf("Usage: %s <disk-image> <subcmd> [args...].\n\n"
                "Commands:\n"
                "MBR Commands\n"
@@ -25,8 +27,6 @@ int main(int argc, char* argv[]) {
         printf("Usage: %s <file> <subcmd> [args...].\nUse %s --help to see more information.\n", argv[0], argv[0]);
         return 1;
     }
-
-    printf("TDISK - Tiger Disk Utility v%s\nBy tigercodes-dev <https://github.com/tigercodes-dev>\nThis tool is included in TigerOS.\n\n", VERSION);
 
     char* filename = argv[1];
     char* subcmd = argv[2];
@@ -45,6 +45,10 @@ int main(int argc, char* argv[]) {
         exit_code = CMD_create_partition(file, argc - 2, &argv[2]);
     } else if (stricmp(subcmd, "format") == 0) {
         exit_code = CMD_format(file, argc - 2, &argv[2]);
+    } else if (stricmp(subcmd, "read-sectors") == 0) {
+        exit_code = CMD_read_sectors(file, argc - 2, &argv[2]);
+    } else if (stricmp(subcmd, "write-sectors") == 0) {
+        exit_code = CMD_write_sectors(file, argc - 2, &argv[2]);
     } else {
         fprintf(stderr, "\e[31;1mError:\e[0m The subcommand '%s' is invalid.\nUse %s --help to see all subcommands.\n", filename, argv[0]);
         fclose(file);
