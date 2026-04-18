@@ -1,0 +1,96 @@
+.\" TDISK Man Pages
+.\" By tigercodes-dev
+.\" TDISK is included in TigerOS
+
+.TH "TDISK" "8" "2026-4-18" "TigerOS 0.2.1" "System Administration"
+
+.SH NAME
+tdisk \- manage disk partitions and filesystems.
+
+.SH SYNOPSIS
+.B tdisk
+.I disk
+.I subcommand
+[args...]
+
+.B tdisk
+[--help | --version]
+
+.SH DESCRIPTION
+.B tdisk
+is a program used for managing partition tables and filesystems on block devices or disk images.
+
+A disk can be split into multiple partitions. These partitions are typically recorded at the beginning of the disk.
+Then, each partition can be independently formatted and used.
+
+Each partition can have its own filesystem. A filesystem tells where files are stored on disk. \fBtdisk\fR can be used to format partitions with filesystems.
+
+\fBtdisk\fR is divided into multiple subcommands that each handle their own tasks. You can see them below.
+
+.SH SUBCOMMANDS
+
+.SS Disk Commands
+
+\fBread-sectors\fR \- read sectors from a disk
+
+.RS 4
+
+.B read-sectors
+.I lba
+.I count
+[-q | --output \fIfile\fR]
+
+See \fBtdisk-read-sectors\fR(8) for more information.
+
+.RE
+
+\fBwrite-sectors\fR \- write sectors to a disk
+
+.RS 4
+
+.B read-sectors
+.I lba
+.I count
+[-q | --input \fIfile\fR]
+
+See \fBtdisk-write-sectors\fR(8) for more information.
+
+.RE 
+
+.SS Partitioning Commands
+
+\fBmbr\fR \- apply a Master Boot Record binary.
+
+.RS 4
+
+.B mbr
+.I mbr-image
+[-q | --quiet]
+[-x | --del-partitions]
+[-m | --no-modify]
+
+See \fBtdisk-mbr\fR(8) for more information.
+
+.RE 
+
+\fBcreate-partition\fR \- create a partition on the disk.
+
+.RS 4
+
+.B create-partition
+.I type
+[-s | --size \fIsize\fR]
+[-f | --first \fIoffset\fR]
+[-t | --type \fItype\fR]
+
+See \fBtdisk-create-partition\fR(8) for more information.
+
+.RE
+
+.SH AUTHOR
+
+\fBtdisk\fR was created by tigercodes-dev \fB<https://github.com/tigercodes-dev>\fR as part of the TigerOS project.
+
+.SH SEE ALSO
+
+\fBtdisk-read-sectors\fR(8) \fBtdisk-write-sectors\fR(8) \fBtdisk-mbr\fR(8) \fBtdisk-create-partition\fR(8)

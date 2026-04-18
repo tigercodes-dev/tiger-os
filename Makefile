@@ -33,7 +33,7 @@ export PATH := $(BUILD)/tools:$(PATH)
 DISK_SIZE := 64M
 DISK_FILE ?= $(BUILD)/TigerOS.img
 
-.PHONY: all disk tools tdisk mbr ospartition bootloader bootsector krnld kernel clean
+.PHONY: all disk tools tdisk tdisk-install mbr ospartition bootloader bootsector krnld kernel clean
 .SILENT:
 
 all: tools disk
@@ -103,6 +103,11 @@ tools: tdisk
 tdisk:
 	$(MAKE) -C tools/disk/tdisk
 
+tdisk-install:
+	export PREFIX
+	export DESTDIR
+	$(MAKE) -C tools/disk/tdisk install
+
 # Special Targets
 
 help:
@@ -123,12 +128,18 @@ help:
 	echo "\tversion - shows a version message"
 	echo
 	echo "\tall - builds everything"
+	echo
 	echo "\tdisk - builds the disk image"
+	echo "\tmbr - build the Master Boot Record"
+	echo "\ttospartition - build the TigerOS disk partition"
 	echo "\tbootloader - builds the bootloader (boot sector and kernel loader)"
 	echo "\tbootsector - builds the boot sector"
 	echo "\tkrnld - builds the kernel loader"
 	echo "\tkernel - builds the kernel"
 	echo "\tclean - clears the build directory"
+	echo
+	echo "\ttdisk - builds the TDISK tool"
+	echo "\ttdisk-install - installs the TDISK tool (may require sudo when installing to system directory)"
 	echo
 	echo "\ttoolchain - builds the toolchain"
 	echo "\ttools-binutils - builds binutils, version: $(BINUTILS_VER)"
