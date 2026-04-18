@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mouse driver
 - Disk creation tools for partitioning & adding files more easily
 
+## [0.2.1] - 2026-04-18
+
+### Added
+
+- Added TDISK read/write sectors tools.
+- Updated TDISK --help info.
+- Added Man Pages for TDISK.
+- TDISK install command to install tdisk to the machine.
+
 ## [0.2.0] - 2026-04-13
 
 ### Added
