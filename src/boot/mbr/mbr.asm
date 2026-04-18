@@ -23,24 +23,25 @@ main:
     mov si, msg_welcome
     call puts
 
+    mov ah, 0x02
+    mov dh, 0
+    mov cx, 2
+    mov al, 1
+    mov bx, 0x800
+    int 0x13
+
     xor cx, cx ; cl - loop counter, ch - partitions found count
     mov bx, partition_table
 
 .check_partition:
     ; Search partition table
     mov al, [bx]
-    test al, 0x80 ; check bit 7
-    jz .partition_listed ; skip listing non-active partitions
+    test al, 0x80 ; test for any active
+    jz .partition_listed ; skip listing non active partitions
 
-    mov si, part_primary
-    call puts
+    call 0x800
 
-    mov ah, 0x0E
-    mov al, cl
-    add al, 0x31 ; ascii number characters start at 30, skip number 0
     push bx
-    xor bh, bh
-    int 0x10
     mov bl, 1
     shl bl, cl
     or [active_partitions], bl
@@ -112,7 +113,6 @@ main:
     int 0x13
     jc disk_error
 
-.read_done:
     cmp word [0x7DFE], 0xAA55
     jne .non_bootable
 
@@ -206,7 +206,6 @@ msg_disk_error: db "Disk error.", 0
 msg_no_partitions: db "No partitions found.", 0
 msg_non_bootable: db "Partition not bootable.", endl, 0
 
-part_primary: db "Primary ", 0
 newline: db endl, 0
 
 times 440-($-$$) db 0

@@ -1,5 +1,5 @@
 #include "pic.h"
-#include "ports.h"
+#include "io.h"
 
 #define PIC1_CMD  0x20
 #define PIC1_DAT  0x21

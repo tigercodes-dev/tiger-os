@@ -7,7 +7,7 @@ endif
 export ROOT := $(abspath .)
 export SCRIPTS := $(abspath scripts)
 
-export TIGER_OS_VER = 0.0.2
+export TIGER_OS_VER = 0.2.0
 
 export ASM := nasm
 export CC := gcc
@@ -49,6 +49,7 @@ $(DISK_FILE): mbr ospartition
 	head -c $(DISK_SIZE) /dev/zero > $@
 	tdisk $@ mbr $(BUILD)/mbr.bin -q -x > /dev/zero
 	tdisk $@ create-partition primary -t "FAT32 CHS" > /dev/zero
+	dd if=$(BUILD)/mbr-ext.bin of=$@ bs=512 seek=1 conv=notrunc > /dev/zero 2>&1
 	dd if=$(BUILD)/ospart.img of=$@ bs=512 seek=63 conv=notrunc > /dev/zero 2>&1
 	echo "Added TigerOS partition to disk."
 	echo "$@ is ready."
@@ -76,7 +77,7 @@ $(BUILD)/ospart.img: bootloader kernel
 	mattrib -i $@ +h +s "::/SYSTEM/KERNEL.SYS"
 	mmd -i $@ "::/HOME"
 	mmd -i $@ "::/HOME/DOCS"
-	mcopy -i $@ test.txt "::/HOME/DOCS/TEST.TXT"
+	mcopy -i $@ disk-files/lorem.txt "::/HOME/DOCS/LOREM.TXT"
 	echo "Finished adding files to disk."
 	echo "$@ is ready."
 

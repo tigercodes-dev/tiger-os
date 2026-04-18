@@ -9,9 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- FAT32 support
-- Keyboard and mouse drivers
+- Disk driver for kernel
+- Mouse driver
 - Disk creation tools for partitioning & adding files more easily
+
+## [0.2.0] - 2026-04-13
+
+### Added
+
+- Keyboard scancode to character translation
+- Typing on screen.
+- More descriptive MBR partition selection interface.
+
+### Changed
+
+- Renamed `ports.h` to `io.h` in kernel.
+- Moved disk files to `disk-files` directory.
+- Changed `test.txt` to `lorem.txt` with lorem ipsum text.
+
+## [0.1.0] - 2026-04-11
+
+### Added
+
+- FAT32 Support
+- Started new TDISK tool. Development will occur in the `tdisk` branch. Implemented MBR partitioning tools for TDISK.
+- Added install dependencies command for homebrew in `README.md`
+
+### Changed
+
+- Bootloader now uses hardcoded cluster value instead of searching on the disk.
+- The Arch Linux (pacman) install dependencies command now includes `dosfstools` which is not installed by default on Arch.
+- Moved `README.md` images to `docs` folder.
 
 ## [0.0.2] - 2026-04-06
 

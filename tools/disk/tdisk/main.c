@@ -12,7 +12,6 @@
 
 int main(int argc, char* argv[]) {
     if (strcmp(argv[1], "--help") == 0) {
-        printf("TDISK - Tiger Disk Utility v%s\nBy tigercodes-dev <https://github.com/tigercodes-dev>\nThis tool is included in TigerOS.\n\n", VERSION);
         printf("Usage: %s <disk-image> <subcmd> [args...].\n\n"
                "Commands:\n"
                "MBR Commands\n"

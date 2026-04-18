@@ -1,5 +1,5 @@
 #include "vga.h"
-#include "ports.h"
+#include "io.h"
 #include <stdarg.h>
 
 #define SCREEN_WIDTH (int)80
@@ -74,6 +74,10 @@ void putc_VGA(char c) {
         case '\r':
             pos_x = 0;
             break;
+        case '\b':
+            pos_x--;
+            set_screen_chr(pos_x, pos_y, 0);
+            break;
         case '\t':
             for (int i = 0; i < 4 - (pos_x % 4); i++) putc_VGA(' ');
             break;
@@ -83,6 +87,21 @@ void putc_VGA(char c) {
             break;
     }
 
+    if (pos_x < 0) {
+        if (pos_y > 0) {
+            pos_y--;
+        } else {
+            pos_x = 0;
+        }
+        pos_x = SCREEN_WIDTH - 1;
+        while (get_screen_chr(pos_x - 1, pos_y) == 0) {
+            pos_x--;
+            if (pos_x <= 1) {
+                pos_x = 0;
+                break;
+            }
+        }
+    }
     if (pos_x >= SCREEN_WIDTH) {
         pos_x = 0;
         pos_y++;

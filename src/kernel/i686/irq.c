@@ -1,8 +1,7 @@
 #include "irq.h"
 #include "pic.h"
 #include <stddef.h>
-#include "../stdio.h"
-#include "ports.h"
+#include "../log.h"
 
 #define PIC_OFFSET 0x20
 
@@ -14,8 +13,8 @@ void handle_IRQ(InterruptStack* stack) {
     uint8_t pic_irr = get_irr_PIC();
 
     if (handlers[irq] == NULL) {
-        printf("Unhandled Hardware IRQ %d\n", irq);
-        printf("ISR=0x%x  IRR=0x%x\n", pic_isr, pic_irr);
+        logf(WARN, "Unhandled Hardware IRQ %d\n", irq);
+        logf(WARN, "ISR=0x%x  IRR=0x%x\n", pic_isr, pic_irr);
     } else {
         handlers[irq](stack);
     }
