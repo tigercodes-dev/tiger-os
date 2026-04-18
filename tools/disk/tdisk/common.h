@@ -44,5 +44,9 @@ typedef struct {
     uint16_t boot_signature;
 } __attribute__((packed)) MBR;
 
-#define min(a, b) (a) < (b) ? (a) : (b)
-#define max(a, b) (a) > (b) ? (a) : (b)
+typedef struct {
+    uint8_t boot_code[510];
+    uint16_t boot_signature;
+} __attribute__((packed)) VBR;
+
+extern uint8_t const ZERO_BLOCK[SECTOR_SIZE];

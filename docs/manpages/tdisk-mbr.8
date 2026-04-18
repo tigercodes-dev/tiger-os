@@ -1,0 +1,52 @@
+.\" TDISK Man Pages
+.\" By tigercodes-dev
+.\" TDISK is included in TigerOS
+
+.TH "TDISK-MBR" "8" "2026-4-18" "TigerOS 0.2.1" "System Administration"
+
+.SH NAME
+tdisk-mbr \- apply a Master Boot Record binary to a disk.
+
+.SH SYNOPSIS
+.B tdisk mbr
+.I mbr-image
+[-q | --quiet]
+[-x | --del-partitions]
+[-m | --no-modify]
+
+.SH DESCRIPTION
+The \fBmbr\fR command is used to apply a 512-byte (1 sector) MBR binary to a disk. The MBR (Master Boot Record) is located on the first sector of the disk. It contains information like the partition table, disk signature, and the bootstrap code that allows you to boot into a disk partition.
+
+Applying an MBR will write the bootstrap code to the disk. It will also randomize the disk signature unless the \fB-m\fR (no modify) flag is specified. \fBtdisk\fR also attempts to save the old partition table. If the \fB-m\fR or \fB-x\fR flags are specified, this will be disabled.
+
+Overwriting an MBR with one that is not functional could make your system unbootable. This is why a yes/no confirmation will be shown by default; however, this prompt can be disabled with \fB-q\fR (quiet).
+
+.SH OPTIONS
+
+mbr-image
+.RS 4
+The filepath of the MBR binary to apply to the disk.
+.RE
+
+-q, --quiet
+.RS 4
+Disable showing the confirmation prompt for writing the MBR.
+.RE
+
+-x, --del-partitions
+.RS 4
+Do not attempt to save the old partition table and restore it on the new MBR.
+.RE
+
+-m, --no-modify
+.RS 4
+Do not modify the MBR image at all, which includes not saving the partition table, randomizing the disk signature, or adding the boot signature if it is missing. This option is not recommended to be used because a missing boot signature makes the disk completely unbootable.
+.RE
+
+.SH AUTHOR
+
+\fBtdisk\fR was created by tigercodes-dev \fB<https://github.com/tigercodes-dev>\fR as part of the TigerOS project.
+
+.SH SEE ALSO
+
+\fBtdisk-create-partition\fR(8) \fBtdisk-write-sectors\fR(8) 

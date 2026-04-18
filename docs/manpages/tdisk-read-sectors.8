@@ -1,0 +1,45 @@
+.\" TDISK Man Pages
+.\" By tigercodes-dev
+.\" TDISK is included in TigerOS
+
+.TH "TDISK-READ-SECTORS" "8" "2026-4-18" "TigerOS 0.2.1" "System Administration"
+
+.SH NAME
+tdisk-read-sectors \- read sectors from a disk or disk image.
+
+.SH SYNOPSIS
+.B tdisk read-sectors
+.I lba
+.I count
+[-o | --output \fIfile\fR]
+
+.SH DESCRIPTION
+The \fBread-sectors\fR command reads 512-byte sectors from a disk. To determine where to read, an LBA sector address is used.
+LBA (Logical Block Addressing) addresses sectors by a sector number, starting at 0. LBA is the preferred addressing scheme over the deprecated CHS (Cylinder Head Sector) scheme because it does not rely on disk geometry which varies based on hardware.
+
+By default, read data will be dumped to \fBstdout\fR; however, using the \fB-o\fR flag and specifying a file will instead output read data to the specified file. 
+
+.SH OPTIONS
+
+lba
+.RS 4
+The \fBLogical Block Address\fR of the first sector to read. The number of the first is sector 0.
+.RE
+
+count
+.RS 4
+The number of sectors to read. This value must be greater than 0 to read any data.
+.RE
+
+-o, --output \fIfile\fR
+.RS 4
+Output the data to a specified file instead of \fBstdout\fR.
+.RE
+
+.SH AUTHOR
+
+\fBtdisk\fR was created by tigercodes-dev \fB<https://github.com/tigercodes-dev>\fR as part of the TigerOS project.
+
+.SH SEE ALSO
+
+\fBtdisk-write-sectors\fR(8)
