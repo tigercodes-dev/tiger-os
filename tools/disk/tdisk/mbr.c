@@ -74,8 +74,12 @@ int CMD_mbr(FILE* file, int argc, char* argv[]) {
     fread(&old_mbr, 1, sizeof(MBR), file);
 
     // Copy the old partition table
-    if (!del_part_table && !no_modify) {
-        memcpy(new_mbr.partition_table, old_mbr.partition_table, sizeof(old_mbr.partition_table));
+    if (!no_modify) {
+        if (del_part_table) {
+            memset(new_mbr.partition_table, 0, sizeof(new_mbr.partition_table));
+        } else {
+            memcpy(new_mbr.partition_table, old_mbr.partition_table, sizeof(old_mbr.partition_table));
+        }
     }
 
     if (!quiet) {
@@ -135,16 +139,28 @@ int CMD_create_partition(FILE* file, int argc, char* argv[]) {
         char* arg = argv[i];
         if (arg[0] == '-') {
             if (strcmp(arg, "-s") == 0 || strcmp(arg, "--size") == 0) {
+                if (i + 1 >= argc) {
+                    fprintf(stderr, "\e[31;1mError:\e[0m No size argument was specified.\n");
+                    return 1;
+                }
                 char* size_arg = argv[++i];
                 size_t size_bytes = parse_suffix_size(size_arg);
                 partition_size = size_bytes / SECTOR_SIZE;
                 if (size_bytes % SECTOR_SIZE != 0) partition_size++;
             } else if (strcmp(arg, "-f") == 0 || strcmp(arg, "--first") == 0) {
+                if (i + 1 >= argc) {
+                    fprintf(stderr, "\e[31;1mError:\e[0m No offset argument was specified.\n");
+                    return 1;
+                }
                 char* first_arg = argv[++i];
                 size_t first_bytes = parse_suffix_size(first_arg);
                 first_sector_offset = first_bytes / SECTOR_SIZE;
                 if (first_bytes % SECTOR_SIZE != 0) first_sector_offset++;
             } else if (strcmp(arg, "-t") == 0 || strcmp(arg, "--type") == 0) {
+                if (i + 1 >= argc) {
+                    fprintf(stderr, "\e[31;1mError:\e[0m No type argument was specified.\n");
+                    return 1;
+                }
                 char* type_arg = argv[++i];
                 system_type = parse_system_type(type_arg);
             } else {
