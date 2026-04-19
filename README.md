@@ -84,6 +84,12 @@ Then, in another terminal, connect to QEMU in gdb using `target remote :1234`
 - Use `c` to continue execution unt.mine the registers.
 - Use `x [address]` to examine memory. You can specify options with a slash. (ex. `x/2xb` prints two bytes)
 
+## TDISK
+
+TigerOS includes a tool called TDISK (Tiger Disk Utility). TDISK is compiled before the OS is built because it is used for different disk operations.
+
+If you would like to install TDISK for use outside of the project, run `sudo make tdisk-install` after you have compiled it.
+TDISK and the TDISK man pages will be installed to `/usr/local/`.
 
 ## Copyright
 

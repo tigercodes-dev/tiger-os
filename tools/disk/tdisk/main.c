@@ -8,8 +8,6 @@
 #include "format.h"
 #include "disk.h"
 
-#define VERSION "1.0.0"
-
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         goto usage_error;
