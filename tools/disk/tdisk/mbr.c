@@ -7,6 +7,28 @@
 #include "mathutil.h"
 #include <ctype.h>
 
+static bool read_mbr(FILE* disk, void* buffer) {
+    long oldpos = ftell(disk);
+
+    fseek(disk, 0, SEEK_SET);
+    bool success = fread(buffer, 1, sizeof(MBR), disk) == sizeof(MBR);
+
+    fseek(disk, oldpos, SEEK_SET);
+
+    return success;
+}
+
+static bool write_mbr(FILE* disk, void* buffer) {
+    long oldpos = ftell(disk);
+
+    fseek(disk, 0, SEEK_SET);
+    bool success = fwrite(buffer, 1, sizeof(MBR), disk) == sizeof(MBR);
+
+    fseek(disk, oldpos, SEEK_SET);
+
+    return success;
+}
+
 int CMD_mbr(FILE* file, int argc, char* argv[]) {
     if (argc < 2) {
         printf("Usage: tdisk <file> %s <MBR-image>\nUse tdisk --help for more information.\n", argv[0]);
@@ -56,7 +78,8 @@ int CMD_mbr(FILE* file, int argc, char* argv[]) {
 
     MBR new_mbr;
     if (fread(&new_mbr, 1, sizeof(MBR), mbr_image) < sizeof(MBR)) {
-        fprintf(stderr, "\e[33;1mWarning:\e[0m The MBR image is smaller than typical size of %lu bytes.\n", sizeof(MBR));
+        fprintf(stderr, "\e[31;1mError:\e[0m The MBR image is smaller than sector size of %lu bytes.\n", sizeof(MBR));
+        return 2;
     }
 
     if (new_mbr.boot_signature != 0xAA55 && !no_modify) {
@@ -71,7 +94,10 @@ int CMD_mbr(FILE* file, int argc, char* argv[]) {
     MBR old_mbr;
 
     fseek(file, 0, SEEK_SET);
-    fread(&old_mbr, 1, sizeof(MBR), file);
+    if (!read_mbr(file, &old_mbr)) {
+        fprintf(stderr, "\e[33;1mWarning:\e[0m Could not read the old MBR. Partition table saving will be disabled.\n");
+        del_part_table = true;
+    }
 
     // Copy the old partition table
     if (!no_modify) {
@@ -93,7 +119,7 @@ int CMD_mbr(FILE* file, int argc, char* argv[]) {
     }
 
     fseek(file, 0, SEEK_SET);
-    if (fwrite(&new_mbr, 1, sizeof(MBR), file) < sizeof(MBR)) {
+    if (!write_mbr(file, &new_mbr)) {
         fprintf(stderr, "\e[33;1mWarning:\e[0m Not all of the data was able to be written to the disk.\n");
     };
 
@@ -102,20 +128,80 @@ int CMD_mbr(FILE* file, int argc, char* argv[]) {
     return 0;
 }
 
+// Forward Slashes (/) separate numbers with multiple types.
+static const char* const SYSTEM_TYPES[] = {
+    [SYSTEM_TYPE_NONE] = "Empty/None",
+    [SYSTEM_TYPE_FAT12] = "FAT12",
+    [SYSTEM_TYPE_XNXRT] = "XENIX root",
+    [SYSTEM_TYPE_XNXUSR] = "XENIX usr",
+    [SYSTEM_TYPE_FAT16] = "FAT16",
+    [SYSTEM_TYPE_EXTD] = "Extended",
+    [SYSTEM_TYPE_FAT16B] = "FAT16B",
+    [SYSTEM_TYPE_HPNTEXF] = "HPFS/NTFS/exFAT",
+    [SYSTEM_TYPE_AIX] = "AIX",
+    [SYSTEM_TYPE_AIXBT] = "AIX bootable/Coherent",
+    [SYSTEM_TYPE_OS2BTMGR] = "OS2 Boot Manager",
+    [SYSTEM_TYPE_FAT32CHS] = "FAT32",
+    [SYSTEM_TYPE_FAT32LBA] = "FAT32 LBA",
+    [SYSTEM_TYPE_FAT16LBA] = "FAT16B LBA",
+    [SYSTEM_TYPE_EXTDLBA] = "Extended LBA",
+    [SYSTEM_TYPE_H_FAT12] = "Hidden FAT12",
+    [SYSTEM_TYPE_CFGSVC] = "Compaq Configuration/Service Partition",
+    [SYSTEM_TYPE_H_FAT16] = "Hidden FAT16",
+    [SYSTEM_TYPE_H_EXTD] = "Hidden Extended",
+    [SYSTEM_TYPE_H_FAT16B] = "Hidden FAT16B",
+    [SYSTEM_TYPE_H_HPNTEX] = "Hidden HPFS/Hidden NTFS/Hidden exFAT",
+    [SYSTEM_TYPE_H_F32CHS] = "Hidden FAT32",
+    [SYSTEM_TYPE_H_F32LBA] = "Hidden FAT32 LBA",
+    [SYSTEM_TYPE_H_F16LBA] = "Hidden FAT16B LBA",
+    [SYSTEM_TYPE_H_EXTLBA] = "Hidden Extended LBA",
+    [SYSTEM_TYPE_NECDOS] = "NEC DOS",
+    [SYSTEM_TYPE_WINRE] = "WinRE",
+    [SYSTEM_TYPE_AIXJFS] = "AIX JFS",
+    [SYSTEM_TYPE_PLAN9] = "Plan 9",
+    [SYSTEM_TYPE_PMREC] = "PartitionMagic Recovery",
+    [SYSTEM_TYPE_PREPBOOT] = "PPC PReP Boot",
+    [SYSTEM_TYPE_SFS] = "SFS",
+    [SYSTEM_TYPE_QNX4_1] = "QNX4 Primary",
+    [SYSTEM_TYPE_QNX4_2] = "QNX4 Secondary",
+    [SYSTEM_TYPE_QNX4_3] = "QNX4 Tertiary",
+    [SYSTEM_TYPE_GNUHURD] = "GNU Hurd",
+    [SYSTEM_TYPE_MINIXOLD] = "Minix Old",
+    [SYSTEM_TYPE_MINIX] = "Minix",
+    [SYSTEM_TYPE_LSWP_SLS] = "Linux Swap/Solaris Old",
+    [SYSTEM_TYPE_LINUX] = "Linux",
+    [SYSTEM_TYPE_LINEXTD] = "Linux Extended",
+    [SYSTEM_TYPE_LINPLTXT] = "Linux Plaintext",
+    [SYSTEM_TYPE_AMOEBA] = "Amoeba",
+    [SYSTEM_TYPE_BSDOS] = "BSD OS",
+    [SYSTEM_TYPE_FREEBSD] = "FreeBSD",
+    [SYSTEM_TYPE_OPENBSD] = "OpenBSD",
+    [SYSTEM_TYPE_DWNUFS] = "Darwin UFS",
+    [SYSTEM_TYPE_DWNBOOT] = "Darwin Boot",
+    [SYSTEM_TYPE_HFS] = "HFS/HFS+",
+    [SYSTEM_TYPE_SLS_BOOT] = "Solaris Boot",
+    [SYSTEM_TYPE_SOLARIS] = "Solaris",
+    [SYSTEM_TYPE_DELLUTIL] = "Dell Utility",
+    [SYSTEM_TYPE_GPT] = "GPT",
+    [SYSTEM_TYPE_EFI] = "EFI/EFI System",
+    [0xFF] = NULL
+};
+
 uint8_t parse_system_type(char* type) {
-    if (stricmp(type, "None") == 0 || stricmp(type, "Empty") == 0) {
-        return SYSTEM_TYPE_NONE;
-    } else if (stricmp(type, "FAT12") == 0) {
-        return SYSTEM_TYPE_FAT12;
-    } else if (stricmp(type, "FAT16") == 0) {
-        return SYSTEM_TYPE_FAT16;
-    } else if (stricmp(type, "FAT16B") == 0) {
-        return SYSTEM_TYPE_FAT16B;
-    } else if (stricmp(type, "FAT32 CHS") == 0) {
-        return SYSTEM_TYPE_FAT32CHS;
-    } else {
-        return SYSTEM_TYPE_NONE;
+    for (int i = 0; i < 256; i++) {
+        char* type_val = (char*)SYSTEM_TYPES[i];
+        if (type_val == NULL) continue;
+        char namebuf[64] = {0};
+        strcpy(namebuf, type_val);
+
+        char* token = strtok(namebuf, "/");
+
+        while (token != NULL) {
+            if (stricmp(token, type) == 0) return i;
+            token = strtok(NULL, "/");
+        }
     }
+    return SYSTEM_TYPE_NONE;
 }
 
 static const PartitionTableEntry ZERO_ENTRY = {0};
@@ -128,7 +214,10 @@ int CMD_create_partition(FILE* file, int argc, char* argv[]) {
 
     MBR mbr;
     fseek(file, 0, SEEK_SET);
-    fread(&mbr, 1, sizeof(MBR), file);
+    if (!read_mbr(file, &mbr)) {
+        fprintf(stderr, "\e[31;1mError:\e[0m Unable to read the MBR.\n");
+        return 1;
+    }
 
     char* partition_type = NULL;
     uint32_t partition_size = 0; // Sectors in the partition
@@ -220,11 +309,56 @@ int CMD_create_partition(FILE* file, int argc, char* argv[]) {
 
     // Write the partition to the disk
     fseek(file, 0, SEEK_SET);
-    if (fwrite(&mbr, 1, sizeof(MBR), file) != sizeof(MBR)) {
+    if (!write_mbr(file, &mbr)) {
         fprintf(stderr, "\e[33;1mWarning:\e[0m Not all of the data was able to be written to the disk.\n");
     }
 
     printf("Partition created.\nPartition number: %i.\n", partition_number);
+
+    return 0;
+}
+
+static void print_with_suffix(size_t size) {
+    if (size < 1024ul) {
+        printf("%dB", (unsigned int)size);
+    } else if (size < 1024ul * 1024ul) {
+        printf("%.1fK", size / 1024.0f);
+    } else if (size < 1024ul * 1024ul * 1024ul) {
+        printf("%.1fM", size / (1024.0f * 1024.0f));
+    } else if (size < 1024ul * 1024ul * 1024ul * 1024ul) {
+        printf("%.1fB", size / (1024.0f * 1024.0f * 1024.0f));
+    } else {
+        printf("%.1fT", size / (1024.0f * 1024.0f * 1024.0f * 1024.0f));
+    }
+}
+
+int CMD_list_partitions(FILE* file, int argc, char* argv[]) {
+    MBR mbr;
+    if (!read_mbr(file, &mbr)) {
+        fprintf(stderr, "\e[31;1mError:\e[0m Unable to read the MBR.\n");
+        return 1;
+    }
+
+    printf("Num  Type       Boot   System Type     First      Last      Size\n");
+
+    bool partition_found = false;
+    for (int i = 0; i < 4; i++) {
+        if (mbr.partition_table[i].partition_sectors > 0) {
+            char part_num[5];
+            snprintf(part_num, 4, "%d.", i + 1);
+            printf("%-4s %-10s %-6c %-15s %-10d %-10d", part_num, "Primary", mbr.partition_table[i].active & 0x80 ? '*' : ' ',
+                SYSTEM_TYPES[mbr.partition_table[i].system_type], mbr.partition_table[i].start_lba,
+                mbr.partition_table[i].start_lba + mbr.partition_table[i].partition_sectors - 1);
+            print_with_suffix(mbr.partition_table[i].partition_sectors * SECTOR_SIZE);
+            putchar('\n');
+            partition_found = true;
+        }
+    }
+
+    if (!partition_found) {
+        printf("\nNo partitions found.\n");
+        return 1;
+    }
 
     return 0;
 }

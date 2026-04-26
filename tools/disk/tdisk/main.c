@@ -11,7 +11,7 @@
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         goto usage_error;
-    } 
+    }
 
     if (strcmp(argv[1], "--help") == 0) {
         printf("Usage: %s <disk-image> <subcmd> [args...].\n\n"
@@ -62,6 +62,8 @@ int main(int argc, char* argv[]) {
         exit_code = CMD_mbr(file, argc - 2, &argv[2]);
     } else if (stricmp(subcmd, "create-partition") == 0) {
         exit_code = CMD_create_partition(file, argc - 2, &argv[2]);
+    } else if (stricmp(subcmd, "list-partitions") == 0) {
+        exit_code = CMD_list_partitions(file, argc - 2, &argv[2]);
     } else if (stricmp(subcmd, "format") == 0) {
         exit_code = CMD_format(file, argc - 2, &argv[2]);
     } else if (stricmp(subcmd, "read-sectors") == 0) {
