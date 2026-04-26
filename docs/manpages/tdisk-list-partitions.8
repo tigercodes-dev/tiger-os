@@ -1,0 +1,39 @@
+.\" TDISK Man Pages
+.\" By tigercodes-dev
+.\" TDISK is included in TigerOS
+
+.TH "TDISK-LIST-PARTITIONS" "8" "2026-4-16" "TigerOS 0.2.2" "System Administration"
+
+.SH NAME
+tdisk-list-partitions \- list partitions on a disk or disk image.
+
+.SH SYNOPSIS
+.B tdisk list-partitions
+
+.SH DESCRIPTION
+The \fBlist-partitions\fR command lists all partitions found on a disk. Partitions are subdivisions of disks that can be managed independently. Using this command, you can view the partitions that are on the disk.
+
+.SH OUTPUT
+The output will be formatted into a table with columns for:
+.IP \\(bu
+\fBPartition Number\fR - Used to identify the partition in the partition table. Ranged 1-4 in primary partitions.
+.IP \\(bu
+\fBType\fR - Whether the partition is a primary partition (stored in the main partition table) or an extended partition (stored in an extended partition table)
+.IP \\(bu
+\fBBoot\fR - Whether the partition is bootable/active. Bootable partitions usually have a volume boot record containing code to boot that partition.
+.IP \\(bu
+\fBSystem Type\fR - Descriptor of the partition's file system or purpose. (e.g. FAT32, Linux, NTFS)
+.IP \\(bu
+\fBFirst\fR - The first sector of the partition.
+.IP \\(bu
+\fBLast\fR - The last sector of the partition.
+.IP \\(bu
+\fBSize\fR - The total size of the partition.
+
+.SH AUTHOR
+
+\fBtdisk\fR was created by tigercodes-dev \fB<https://github.com/tigercodes-dev>\fR as part of the TigerOS project.
+
+.SH SEE ALSO
+
+\fBtdisk-create-partition\fR(8) \fBtdisk-mbr\fR(8)

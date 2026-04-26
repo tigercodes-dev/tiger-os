@@ -1,0 +1,41 @@
+.\" TDISK Man Pages
+.\" By tigercodes-dev
+.\" TDISK is included in TigerOS
+
+.TH "TDISK-DELETE-PARTITION" "8" "2026-4-26" "TigerOS 0.2.2" "System Administration"
+
+.SH NAME
+tdisk-delete-partition \- delete a disk partition entry.
+
+.SH SYNOPSIS
+.B tdisk delete-partition
+.I partition-num
+[-q | --quiet]
+
+.SH DESCRIPTION
+The \fBdelete-partition\fR command deletes a disk partition entry.
+
+.SH OPTIONS
+
+partition-num
+.RS 4
+The partition number to delete. Use \fBtdisk list-partitions\fR to see the partition numbers.
+.RE
+
+-q, --quiet
+.RS 4
+Do not show the confirmation message to delete the partition.
+.RE
+
+-s, --shift
+.RS 4
+Shift the partition table to fill the deleted entry.
+.RE
+
+.SH AUTHOR
+
+\fBtdisk\fR was created by tigercodes-dev \fB<https://github.com/tigercodes-dev>\fR as part of the TigerOS project.
+
+.SH SEE ALSO
+
+\fBtdisk-mbr\fR(8) \fBtdisk-list-partitions\fR(8) \fBtdisk-create-partitions\fR(8)

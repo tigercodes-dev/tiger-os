@@ -18,6 +18,10 @@ int CMD_read_sectors(FILE* file, int argc, char* argv[]) {
         char* arg = argv[i];
         if (arg[0] == '-') {
             if (strcmp(arg, "-o") == 0 || strcmp(arg, "--output") == 0) {
+                if (i + 1 >= argc) {
+                    fprintf(stderr, "\e[31;1mError:\e[0m No output file argument was specified.\n");
+                    return 1;
+                }
                 output = fopen(argv[++i], "wb");
             } else {
                 fprintf(stderr, "\e[31;1mError:\e[0m Invalid option '%s'.\n", arg);
@@ -67,6 +71,10 @@ int CMD_write_sectors(FILE* file, int argc, char* argv[]) {
         char* arg = argv[i];
         if (arg[0] == '-') {
             if (strcmp(arg, "-i") == 0 || strcmp(arg, "--input") == 0) {
+                if (i + 1 >= argc) {
+                    fprintf(stderr, "\e[31;1mError:\e[0m No input file argument was specified.\n");
+                    return 1;
+                }
                 input = fopen(argv[++i], "rb");
             } else {
                 fprintf(stderr, "\e[31;1mError:\e[0m Invalid option '%s'.\n", arg);

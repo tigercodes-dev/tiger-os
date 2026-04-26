@@ -20,6 +20,10 @@ int CMD_format(FILE* file, int argc, char* argv[]) {
             if (strcmp(arg, "-q") == 0 || strcmp(arg, "--quick") == 0) {
                 quick = true;
             } else if (strcmp(arg, "-v") == 0 || strcmp(arg, "--vol-label")) {
+                if (i + 1 >= argc) {
+                    fprintf(stderr, "\e[31;1mError:\e[0m No size argument was specified.\n");
+                    return 1;
+                }
                 volume_label = argv[++i];
             } else {
                 fprintf(stderr, "\e[31;1mError:\e[0m Invalid option '%s'.\n", arg);
