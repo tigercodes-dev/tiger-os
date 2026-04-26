@@ -5,13 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## Unreleased Updates
+
+You can view the main unreleased updates [here](https://github.com/tigercodes-dev/tiger-os/compare/main..develop).
+
+You can also view unreleased TDISK updates [here](https://github.com/tigercodes-dev/tiger-os/compare/develop...tdisk).
+
+_Be warned that these unreleased updates may contain bugs! Stable releases are on the main branch._
+
+## [0.2.2] - 2026-04-26
 
 ### Added
+- New selectable TDISK partition types
+- New commands for listing partitions, marking partitions as active, and deleting partitions
+- Update release date when using `make help` or `make version`
 
-- Disk driver for kernel
-- Mouse driver
-- Disk creation tools for partitioning & adding files more easily
+### Changed
+- Moved TDISK help message to separate documentation file: `/usr/local/share/doc/tdisk/tdisk-commands.txt`. The help message now also opens in less to allow easier viewing.
+
+### Fixed
+- Fixed bugs causing segmentation faults when parsing TDISK arguments.
 
 ## [0.2.1] - 2026-04-18
 
@@ -108,3 +121,12 @@ _First beta release._
 - Kernel loader FAT16 driver.
 - Kernel loader loading kernel file.
 - i686 GCC cross compiler.
+
+[0.2.2]: https://github.com/tigercodes-dev/tiger-os/compare/v0.2.1...v0.2.2
+[0.2.1]: https://github.com/tigercodes-dev/tiger-os/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/tigercodes-dev/tiger-os/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/tigercodes-dev/tiger-os/compare/v0.0.2...v0.1.0
+[0.0.2]: https://github.com/tigercodes-dev/tiger-os/compare/v0.0.1...v0.0.2
+[0.0.1]: https://github.com/tigercodes-dev/tiger-os/compare/v0.0.1-beta.2...v0.0.1
+[0.0.1-beta.2]: https://github.com/tigercodes-dev/tiger-os/compare/v0.0.1-beta...v0.0.1-beta.2
+[0.0.1-beta]: https://github.com/tigercodes-dev/tiger-os/releases/tag/v0.0.1-beta
