@@ -27,3 +27,5 @@ Commands:
 Use 'man tdisk' to view tdisk manual pages.
 
 TDISK is included with TigerOS by tigercodes-dev <https://github.com/tigercodes-dev/tiger-os>.
+
+TDISK Version 0.2.0

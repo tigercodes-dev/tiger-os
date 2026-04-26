@@ -25,8 +25,8 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     } else if (strcmp(argv[1], "--version") == 0) {
-        printf("TDISK Version 0.1.0\n"
-               "TigerOS Version 0.2.1\n"
+        printf("TDISK Version 0.2.0\n"
+               "TigerOS Version 0.2.2\n"
                "TDISK is included with TigerOS by tigercodes-dev <https://github.com/tigercodes-dev/tiger-os>\n");
         return 0;
     }
