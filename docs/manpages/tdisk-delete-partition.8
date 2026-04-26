@@ -19,17 +19,17 @@ The \fBdelete-partition\fR command deletes a disk partition entry.
 
 partition-num
 .RS 4
-The partition number to set active. Use \fBtdisk list-partitions\fR to see the partition numbers.
+The partition number to delete. Use \fBtdisk list-partitions\fR to see the partition numbers.
 .RE
 
--d, --deactivate
+-q, --quiet
 .RS 4
-Set the partition as not active instead of active.
+Do not show the confirmation message to delete the partition.
 .RE
 
--n, --no-deactivate-others
+-s, --shift
 .RS 4
-Do not deactivate the other partitions when marking one as active.
+Shift the partition table to fill the deleted entry.
 .RE
 
 .SH AUTHOR

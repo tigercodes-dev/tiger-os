@@ -22,6 +22,7 @@ Commands:
             -n, --no-deactivate-others - Do not deactivate other partitions when setting one as active.
         delete-partition <partition-num> [-q] - delete a partition entry
             -q, --quiet - Do not display confirmation prompt.
+            -s, --shift - Shift the partition table entries to fill deleted partition entry.
 
 Use 'man tdisk' to view tdisk manual pages.
 

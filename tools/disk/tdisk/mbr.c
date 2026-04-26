@@ -496,6 +496,18 @@ int CMD_delete_partition(FILE* file, int argc, char* argv[]) {
 
     memcpy(&mbr.partition_table[partition_num], &ZERO_ENTRY, sizeof(PartitionTableEntry));
 
+    if (shift) {
+        for (int i = partition_num; i++; i < 3) {
+            if (memcmp(&mbr.partition_table[i], &ZERO_ENTRY, sizeof(PartitionTableEntry)) == 0) {
+                for (int j = i; j++ ; j < 3) {
+                    memcpy(&mbr.partition_table[j], &mbr.partition_table[j + 1], sizeof(PartitionTableEntry));
+                }
+                memcpy(&mbr.partition_table[3], &ZERO_ENTRY, sizeof(PartitionTableEntry));
+                break;
+            }
+        }
+    }
+
     if (!write_mbr(file, &mbr)) {
         fprintf(stderr, "\e[33;1mWarning:\e[0m Not all of the data was able to be written to the disk.\n");
     }
