@@ -6,6 +6,7 @@
 #include "stringutil.h"
 #include "mathutil.h"
 #include <ctype.h>
+#include <stdlib.h>
 
 static bool read_mbr(FILE* disk, void* buffer) {
     long oldpos = ftell(disk);
@@ -299,7 +300,7 @@ int CMD_create_partition(FILE* file, int argc, char* argv[]) {
             return 2;
         }
 
-        entry->active = PARTITION_ACTIVE;
+        entry->active = PARTITION_NOT_ACTIVE;
         entry->start_chs = lba_to_chs(first_sector, SECTORS_PER_TRACK, HEADS);
         entry->system_type = system_type;
         entry->end_chs = lba_to_chs(first_sector + partition_size - 1, SECTORS_PER_TRACK, HEADS);
@@ -308,7 +309,6 @@ int CMD_create_partition(FILE* file, int argc, char* argv[]) {
     }
 
     // Write the partition to the disk
-    fseek(file, 0, SEEK_SET);
     if (!write_mbr(file, &mbr)) {
         fprintf(stderr, "\e[33;1mWarning:\e[0m Not all of the data was able to be written to the disk.\n");
     }
@@ -343,7 +343,7 @@ int CMD_list_partitions(FILE* file, int argc, char* argv[]) {
 
     bool partition_found = false;
     for (int i = 0; i < 4; i++) {
-        if (mbr.partition_table[i].partition_sectors > 0) {
+        if (memcmp(&mbr.partition_table[i], &ZERO_ENTRY, sizeof(PartitionTableEntry)) != 0) {
             char part_num[5];
             snprintf(part_num, 4, "%d.", i + 1);
             printf("%-4s %-10s %-6c %-15s %-10d %-10d", part_num, "Primary", mbr.partition_table[i].active & 0x80 ? '*' : ' ',
@@ -358,6 +358,146 @@ int CMD_list_partitions(FILE* file, int argc, char* argv[]) {
     if (!partition_found) {
         printf("\nNo partitions found.\n");
         return 1;
+    }
+
+    return 0;
+}
+
+int CMD_set_active(FILE* file, int argc, char* argv[]) {
+    if (argc < 2) {
+        printf("Usage: tdisk <file> %s <partition-num>\nUse tdisk --help for more information.\n", argv[0]);
+        return 1;
+    }
+
+    int partition_num = -1;
+    bool deactivate = false;
+    bool no_deactivate_others = false;
+
+    for (int i = 1; i < argc; i++) {
+        char* arg = argv[i];
+        if (arg[0] == '-') {
+            if (strcmp(arg, "-n") == 0 || strcmp(arg, "--no-deactivate-others") == 0) {
+                no_deactivate_others = true;
+            } else if (strcmp(arg, "-d") == 0 || strcmp(arg, "--deactivate") == 0) {
+                deactivate = true;
+            } else {
+                fprintf(stderr, "\e[31;1mError:\e[0m Invalid option '%s'.\n", arg);
+                return 1;
+            }
+        } else {
+            if (partition_num < 0) {
+                char* endptr;
+                partition_num = strtoul(argv[i], &endptr, 10) - 1;
+                if (partition_num < 0 || partition_num > 3) {
+                    fprintf(stderr, "\e[31;1mError:\e[0m Invalid partition number: %i.\n", partition_num + 1);
+                    return 1;
+                }
+            }
+        }
+    }
+
+    if (partition_num < 0) {
+        fprintf(stderr, "\e[31;1mError:\e[0m No partition number specified.\n");
+        return 1;
+    }
+
+    MBR mbr;
+    if (!read_mbr(file, &mbr)) {
+        fprintf(stderr, "\e[31;1mError:\e[0m Unable to read the MBR.\n");
+        return 1;
+    }
+
+    if (memcmp(&mbr.partition_table[partition_num], &ZERO_ENTRY, sizeof(PartitionTableEntry)) == 0) {
+        fprintf(stderr, "\e[31;1mError:\e[0m This partition entry is empty. Cannot set it as active.\n");
+        return 2;
+    }
+
+    if (deactivate) {
+        mbr.partition_table[partition_num].active &= ~PARTITION_ACTIVE;
+        printf("Set partition %d as not active.\n", partition_num);
+    } else {
+        for (int i = 0; i < 4; i++) {
+            if (i == partition_num) {
+                mbr.partition_table[i].active |= PARTITION_ACTIVE;
+            } else {
+                if (!no_deactivate_others) {
+                    mbr.partition_table[i].active &= ~PARTITION_ACTIVE;
+                }
+            }
+        }
+        printf("Set partition %d as active.\n", partition_num);
+    }
+
+    if (!write_mbr(file, &mbr)) {
+        fprintf(stderr, "\e[33;1mWarning:\e[0m Not all of the data was able to be written to the disk.\n");
+    }
+
+    return 0;
+}
+
+int CMD_delete_partition(FILE* file, int argc, char* argv[]) {
+    if (argc < 2) {
+        printf("Usage: tdisk <file> %s <partition-num>\nUse tdisk --help for more information.\n", argv[0]);
+        return 1;
+    }
+
+    int partition_num = -1;
+    bool shift = false;
+    bool quiet = false;
+
+    for (int i = 1; i < argc; i++) {
+        char* arg = argv[i];
+        if (arg[0] == '-') {
+            if (strcmp(arg, "-s") == 0 || strcmp(arg, "--shift") == 0) {
+                shift = true;
+            } else if (strcmp(arg, "-q") == 0 || strcmp(arg, "--quiet") == 0) {
+                quiet = true;
+            } else {
+                fprintf(stderr, "\e[31;1mError:\e[0m Invalid option '%s'.\n", arg);
+                return 1;
+            }
+        } else {
+            if (partition_num < 0) {
+                char* endptr;
+                partition_num = strtoul(argv[i], &endptr, 10) - 1;
+                if (partition_num < 0 || partition_num > 3) {
+                    fprintf(stderr, "\e[31;1mError:\e[0m Invalid partition number: %i.\n", partition_num + 1);
+                    return 1;
+                }
+            }
+        }
+    }
+
+    if (partition_num < 0) {
+        fprintf(stderr, "\e[31;1mError:\e[0m No partition number specified.\n");
+        return 1;
+    }
+
+    MBR mbr;
+    if (!read_mbr(file, &mbr)) {
+        fprintf(stderr, "\e[31;1mError:\e[0m Unable to read the MBR.\n");
+        return 1;
+    }
+
+    if (memcmp(&mbr.partition_table[partition_num], &ZERO_ENTRY, sizeof(PartitionTableEntry)) == 0) {
+        fprintf(stderr, "\e[31;1mError:\e[0m This partition entry is already empty.\n");
+        return 2;
+    }
+
+    if (!quiet) {
+        printf("Do you want to delete this partition? The partition's data may become inacessable! (Y/N) ");
+        char confirm = 'n';
+        scanf("%c", &confirm);
+        if (tolower(confirm) != 'y') {
+            printf("Operation canceled.\n");
+            return 0;
+        }
+    }
+
+    memcpy(&mbr.partition_table[partition_num], &ZERO_ENTRY, sizeof(PartitionTableEntry));
+
+    if (!write_mbr(file, &mbr)) {
+        fprintf(stderr, "\e[33;1mWarning:\e[0m Not all of the data was able to be written to the disk.\n");
     }
 
     return 0;

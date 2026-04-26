@@ -64,6 +64,10 @@ int main(int argc, char* argv[]) {
         exit_code = CMD_create_partition(file, argc - 2, &argv[2]);
     } else if (stricmp(subcmd, "list-partitions") == 0) {
         exit_code = CMD_list_partitions(file, argc - 2, &argv[2]);
+    } else if (stricmp(subcmd, "set-active") == 0) {
+        exit_code = CMD_set_active(file, argc - 2, &argv[2]);
+    } else if (stricmp(subcmd, "delete-partition") == 0) {
+        exit_code = CMD_delete_partition(file, argc - 2, &argv[2]);
     } else if (stricmp(subcmd, "format") == 0) {
         exit_code = CMD_format(file, argc - 2, &argv[2]);
     } else if (stricmp(subcmd, "read-sectors") == 0) {
