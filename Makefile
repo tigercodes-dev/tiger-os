@@ -7,7 +7,8 @@ endif
 export ROOT := $(abspath .)
 export SCRIPTS := $(abspath scripts)
 
-export TIGER_OS_VER = 0.2.1
+export TIGER_OS_VER = 0.2.2
+export UPDATE_DATE = 2026-4-26
 
 export ASM := nasm
 export CC := gcc
@@ -113,6 +114,7 @@ tdisk-install:
 
 help:
 	echo "TigerOS V$(TIGER_OS_VER) <https://github.com/tigercodes-dev/tiger-os>"
+	echo "Released $(UPDATE_DATE)"
 	echo
 	echo "TigerOS  Copyright (C) 2026  tigercodes-dev <https://github.com/tigercodes-dev>"
 	echo "This program comes with ABSOLUTELY NO WARRANTY."
@@ -150,6 +152,7 @@ help:
 
 version:
 	echo "TigerOS V$(TIGER_OS_VER) <https://github.com/tigercodes-dev/tiger-os>"
+	echo "Released $(UPDATE_DATE)"
 	echo
 	echo "TigerOS  Copyright (C) 2026  tigercodes-dev <https://github.com/tigercodes-dev>"
 	echo "This program comes with ABSOLUTELY NO WARRANTY."

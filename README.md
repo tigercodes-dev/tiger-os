@@ -21,14 +21,14 @@ Before building the OS, you need a few tools.
 
 ```
 $ sudo apt update
-$ sudo apt install build-essential bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo nasm make qemu-system-x86 mtools
+$ sudo apt install build-essential bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo nasm make qemu-system-x86 mtools dosfstools
 ```
 
 ### Fedora & CentOS
 
 ```
 $ sudo dnf upgrade
-$ sudo dnf install gcc gcc-c++ bison flex gmp-devel libmpc-devel mpfr-devel texinfo nasm make qemu-system-x86 mtools
+$ sudo dnf install gcc gcc-c++ bison flex gmp-devel libmpc-devel mpfr-devel texinfo nasm make qemu-system-x86 mtools dosfstools
 ```
 
 ### Arch
@@ -41,7 +41,7 @@ $ sudo pacman -S base-devel gmp libmpc mpfr nasm make qemu-system-x86 dosfstools
 ### Homebrew
 
 ```
-$ brew install gcc bison flex gmp libmpc mpfr texinfo nasm make dosfstools mtools
+$ brew install gcc bison flex gmp libmpc mpfr texinfo nasm make dosfstools mtools qemu
 ```
 
 ## Building

@@ -1,10 +1,10 @@
 JOBS ?= 4
 
 BINUTILS_VER := 2.46.0
-BINUTILS_URL := https://ftp.gnu.org/gnu/binutils/binutils-$(BINUTILS_VER).tar.xz
+BINUTILS_URL := https://mirror.cs.odu.edu/gnu/binutils/binutils-$(BINUTILS_VER).tar.xz
 
 GCC_VER := 15.2.0
-GCC_URL := https://ftp.gnu.org/gnu/gcc/gcc-15.2.0/gcc-$(GCC_VER).tar.xz
+GCC_URL := https://mirror.cs.odu.edu/gnu/gcc/gcc-$(GCC_VER)/gcc-$(GCC_VER).tar.xz
 
 TOOLCHAIN := $(abspath toolchain)
 TOOLCHAIN_PREFIX := $(TOOLCHAIN)/$(TARGET)
@@ -31,8 +31,8 @@ $(BINUTILS_SRC).tar.xz:
 	mkdir -p $(TOOLCHAIN)
 	cd $(TOOLCHAIN) && wget $(BINUTILS_URL)
 
-GCC_SRC := $(TOOLCHAIN)/gcc-$(BINUTILS_VER)
-GCC_BUILD := $(TOOLCHAIN)/gcc-$(BINUTILS_VER)-build
+GCC_SRC := $(TOOLCHAIN)/gcc-$(GCC_VER)
+GCC_BUILD := $(TOOLCHAIN)/gcc-$(GCC_VER)-build
 
 tools-gcc: $(TOOLCHAIN_PREFIX)/bin/i686-elf-gcc
 
