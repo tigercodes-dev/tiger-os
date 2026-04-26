@@ -97,6 +97,31 @@ See \fBtdisk-list-partitions\fR(8) for more information.
 
 .RE
 
+\fBset-active\fR \- mark a partition as active or bootable.
+
+.RS 4
+
+.B set-active
+.I partition-num
+[-d | --deactivate]
+[-n | --no-deactivate-others]
+
+See \fBtdisk-set-active\fR(8) for more information.
+
+.RE
+
+\fBdelete-partition\fR \- delete a partition table entry.
+
+.RS 4
+
+.B delete-partition
+.I partition-num
+[-q | --quiet]
+
+See \fBtdisk-delete-partition\fR(8) for more information.
+
+.RE
+
 .SH AUTHOR
 
 \fBtdisk\fR was created by tigercodes-dev \fB<https://github.com/tigercodes-dev>\fR as part of the TigerOS project.
@@ -104,3 +129,4 @@ See \fBtdisk-list-partitions\fR(8) for more information.
 .SH SEE ALSO
 
 \fBtdisk-read-sectors\fR(8) \fBtdisk-write-sectors\fR(8) \fBtdisk-mbr\fR(8) \fBtdisk-create-partition\fR(8) \fBtdisk-list-partitions\fR(8)
+\fBtdisk-set-active\fR(8) \fBtdisk-delete-partition\fR(8)

@@ -1,0 +1,28 @@
+Usage: tdisk <disk-image> <subcmd> [args...].
+Commands:
+    Disk Commands
+        read-sectors <lba-address> <count> [-o <file>] - read sectors from a disk
+            -o, --output <file> - Outputs read data to a file instead of stdout.
+        write-sectors <lba-address> <count> [-i <file>] - write sectors to a disk
+            -i, --input <file> - Read data to write from a file instead of stdin.
+    Partitioning Commands
+        mbr <mbr-image> [-q] [-x] [-m] - apply MBR binary image
+            -q, --quiet - Do not display confirmation prompt.
+            -x, --del-partitions - Do not attempt to save and restore partitions on the disk.
+            -m, --no-modify - Do not modify the MBR binary before applying.
+        create-partition <type> [-s <size>] [-f <offset>] [-t <type>] - create a new partition
+            Note: Currently only primary partitions are supported. Type must be 'primary'.
+            -s, --size <size> - Sets the size of the partition, if not specified, partition takes the remaining disk space.
+            -f, --first <offset> - Adds an offset between the new partition and the last.
+            -t, --type <type> - Sets the partition system id/type.
+        list-partitions - list partitions and their attributes
+        set-active <partition-num> [-d] [-n] - mark a partition as active or bootable
+            Note: if -n is not specified, the other partitions will be set as inactive. Typically, only one partition should be set as active.
+            -d, --deactivate - Deactivate the partition instead.
+            -n, --no-deactivate-others - Do not deactivate other partitions when setting one as active.
+        delete-partition <partition-num> [-q] - delete a partition entry
+            -q, --quiet - Do not display confirmation prompt.
+
+Use 'man tdisk' to view tdisk manual pages.
+
+TDISK is included with TigerOS by tigercodes-dev <https://github.com/tigercodes-dev/tiger-os>.

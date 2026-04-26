@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "stringutil.h"
 
 #include "mbr.h"
@@ -14,26 +15,15 @@ int main(int argc, char* argv[]) {
     }
 
     if (strcmp(argv[1], "--help") == 0) {
-        printf("Usage: %s <disk-image> <subcmd> [args...].\n\n"
-               "Commands:\n"
-               "Disk Commands\n"
-               "    read-sectors <lba-address> <count> [-o <file>]\n"
-               "      -o, --output <file> - Outputs read data to a file instead of stdout.\n"
-               "    write-sectors <lba-address> <count> [-i <file>]\n"
-               "      -i, --input <file> - Read data to write from a file instead of stdin.\n"
-               "Partitioning Commands\n"
-               "    mbr <mbr-image> [-q] [-x] [-m] - apply MBR binary image\n"
-               "      -q, --quiet - Do not display confirmation prompt.\n"
-               "      -x, --del-partitions - Do not attempt to save and restore partitions on the disk.\n"
-               "      -m, --no-modify - Do not modify the MBR binary before applying.\n"
-               "    create-partition <type> [-s <size>] [-f <offset>] [-t <type>] - create a new partition\n"
-               "      Note: Currently only primary partitions are supported. Type must be 'primary'.\n"
-               "      -s, --size <size> - Sets the size of the partition, if not specified, partition takes the remaining disk space.\n"
-               "      -f, --first <offset> - Adds an offset between the new partition and the last.\n"
-               "      -t, --type <type> - Sets the partition system id/type.\n"
-               "\n"
-               "TDISK is included with TigerOS by tigercodes-dev <https://github.com/tigercodes-dev/tiger-os>.\n", argv[0]);
-        return 0;
+        // Open the help message in less
+        if (access("/usr/local/share/doc/tdisk/tdisk-commands.txt", R_OK) == 0) {
+            execl("/usr/bin/less", "less", "/usr/local/share/doc/tdisk/tdisk-commands.txt", NULL);
+        } else if (access("/usr/share/doc/tdisk/tdisk-commands.txt", R_OK) == 0) {
+            execl("/usr/bin/less", "less", "/usr/share/doc/tdisk/tdisk-commands.txt", NULL);
+        } else {
+            fprintf(stderr, "\e[31;1mError:\e[0m Help message documentation not found. Try installing to /usr or /usr/local.\n");
+            return 1;
+        }
     } else if (strcmp(argv[1], "--version") == 0) {
         printf("TDISK Version 0.1.0\n"
                "TigerOS Version 0.2.1\n"
