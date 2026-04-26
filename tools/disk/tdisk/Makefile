@@ -27,7 +27,7 @@ $(EXEC): $(SRC_C) $(HEADERS_C)
 install: install-bin install-man
 
 install-bin:
-	cp $(EXEC) $(INSTALL_PATH)
+	install -m 755 $(EXEC) $(INSTALL_PATH)
 	echo "Installed TDISK to $(INSTALL_PATH)"
 
 install-man: $(MAN_OUT_1) $(MAN_OUT_8)

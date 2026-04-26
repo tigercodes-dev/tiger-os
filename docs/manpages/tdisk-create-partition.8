@@ -21,7 +21,7 @@ On a disk using MBR partitioning, partitions are listed in the partition table l
 
 If a size is not specified with \fB-s\fR, the partition will take up all of the remaining disk space. You can also specify an offset before the start of the partition with \fB-f\fR. The \fBsize\fR and \fBoffset\fR fields can use the units \fBK,M,G,T\fR (kibibyte, mebibyte, gibibyte, tebibyte) or \fBS\fR (sectors).
 
-The type field allows to specify a partition system type / ID. This type is used to specify the filesystem or purpose of the partition. (e.g. FAT32, Linux, NTFS). We are working towards adding support for all partition types in the type field, but only some are available currently.
+The type field allows to specify a partition system type / ID. This type is used to specify the filesystem or purpose of the partition. (e.g. FAT32, Linux, NTFS).
 
 .SH OPTIONS
 
@@ -53,4 +53,4 @@ More recognized partition types will be added soon.
 
 .SH SEE ALSO
 
-\fBtdisk-mbr\fR(8)
+\fBtdisk-mbr\fR(8) \fBtdisk-list-partitions\fR(8)
